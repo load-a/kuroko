@@ -1,0 +1,88 @@
+Case Insensitive
+Numbers are taken as literals by default
+"$" indicates an address
+"@" indicates a pointer (i.e. "@0xAE" means "the address held at location $0xAE")
+Declaring a label look like "Label:". If a label is used as an operand, it becomes ":Label"
+Numbers are not signed by default (0 to 255)
+There is no decimal support
+Using '+' or '-' before a number indicates a signed integer (-128 to 127)
+Registers: A B C D H L I J
+The grammar of any operation is "VERB DIRECT-OBJECT INDIRECT-OBJECT" or "DO THIS to/at/into THIS"
+A is always the implied second operand. If A is ever the first operand, a second one must also be present (when applicable)
+Strings are read starting at a particular address, stopping at the Null Character
+
+Commands
+Arithmetic (These are equivalent to performing (source OP target))
+	ADD source, target	-> "Add": Adds 'source' to 'target'; stores the sum in 'target'
+	SUB source, target	-> "Subtract": Subtracts 'target' from 'source'; stores the difference in 'target'
+	MUL source, target	-> "Multiply": Multiplies 'source' by 'target'; stores the product in 'target'
+	DIV source, target	-> "Divide": Divides 'source' by 'target'; stores the quotient in 'target'
+	REM source, target	-> "Divide": Divides 'source'  by 'target'; stores the remainder in 'target'
+	INC target, step	-> "Increase": Adds 'step' to target; step is 1 by default
+	DEC target, step	-> "Decrease": Subtracts 'step' from 'target'; step is 1 by default
+Logic, Bitwise
+	AND 	source, target	-> "Logical And": Ands the source with the target; stores the result in target
+	OR 		source, target	-> "Logical Or": Ors the source with the target; stores the result in target
+	NOT 	target			-> "Logical Not": Inverts the target
+	XOR 	source, target	-> "Logical Exclusive-Or": X-ORs the source with the target; stores the result in target
+	LEFT 	target, step	-> "Bit Shift Left": Shifts the bits in target 'step' number of times to the Left; step defaults to 1
+	RGHT 	target, step	-> "Bit Shift Right": Shifts the bits in target 'step' number of times to the right; step defaults to 1
+Control Flow
+- Branch (comparison with Zero)
+	COMP 	source, target	-> "Compare": Subtracts the target from the source, setting the Flag register based on the results
+	ZERO 	destination		-> "Branch if Zero": Leaps execution to destination if the zero flag is set
+	POS 	destination		-> "Branch if Positive": Leaps execution to destination if no flags were set
+	NEG 	destination		-> "Branch if Negative": Leaps execution to destination if negative flag was set
+- Jumps (compare number with Accumulator)
+	JUMP	destination, source	-> "Jump": Jumps execution to destination 
+	JEQ		destination, source	-> "Jump if Equal": Jumps execution to destination if source == Accumulator
+	JLT 	destination, source	-> "Jump if Less Than": Jumps execution to destination if source < Accumulator
+	JGT 	destination, source	-> "Jump if Greater Than": Jumps execution to destination if source > Accumulator
+	JGE 	destination, source	-> "Jump if Greater Than or Equal": Jumps execution to destination if source >= Accumulator
+	JLE 	destination, source	-> "Jump if Less Than or Equal": Jumps execution to destination if source <= Accumulator
+- Routines
+	CALL	subroutine 	-> "Call Subroutine": Jumps execution to subroutine or Block Label; saves current instruction index on stack
+	RTRN				-> "Return from Subroutine": Pops the stack and returns execution to right after that instruction
+Stack Manipulation
+	PUSH	source		-> "Push onto Stack": Pushes the source value onto the stack; literals can be pushed
+	POP		destination	-> "Pop off of Stack": Pops the top value from stack, storing it in destination
+	DUMP 				-> "Dump Registers": Pushes each registers value onto stack in order
+	RSTR 				-> "Restore Registers": Restores each register in revers order from stack
+Memory
+	MOVE source, target 	-> "Move Value": Copies the value from source into target
+	LOAD register, source 	-> "Load Register": Copies value from memory into register; Supports immediate values
+	SAVE target, register 	-> "Save Register": Copies value from register into target
+	SWAP source, target 	-> "Swap Values": Exchanges the values of source and target (at least one of them must be a register)
+Input/Output
+	TEXT	destination, string	-> "Record Text": Stores each byte of string into memory starting at destination
+	OUT 	destination, limit	-> "Display Output": Prints the characters starting at destination; ends at limit or null
+	IN 		destination, limit	-> "Read Input": Writes Standard Input as string at destination; ends at limit or null
+	INT 	destination, limit 	-> "Convert to Integer": Makes each character at destination into an integer or zero; stops at null or limit
+	[Limits are a maximum byte count; limits that exceed memory will throw an error]	Othe-> 
+	NAME address, label 		-> "Name Address": Creates a label for the given address, essentially creating a variable
+	PEEK source, destination 	-> "Peek at Memory": Prints the values in memory from source to destination. (Used for debugging)
+
+Constants (used as operands)
+	TRUE, FALSE	-> Not Zero (usually 1 or -1) and Zero, respectively
+	MIN, MAX 	-> Zero and 255 or -128 and 127 if signed (-MIN and +MAX)
+
+Registers
+User Access
+	Accumulator (A)		Arithmetic results, the inferred target of any operation (`ADD 4` == 'ADD 4, A')
+	Bank 		(B, C)	General storage
+	Data 		(H, L)	Holds two 8-bit values (High and Low) which can be used individually or together
+	Index 		(I, J)	Used for loops
+Inaccessible
+	Flag				Holds the status bits. Cannot be written to or read from directly
+	Program Counter		Holds the current instruction address
+	Stack Pointer		Holds the next available address in the stack
+
+Flag Register Bits
+0. Zero 		-> Set if result is zero
+1. Negative		-> Set if result is negative
+2. Carry		-> Set if operation used a carry or borrow
+3. Overflow 	-> Set if a signed operation exceeded the system's range
+4. Comparison 	-> Set if the comparison result was equal
+5. Condition 	-> Set if the comparison result was greater-than
+6. Parity		-> Set if the result has an even number of ones
+7. Unused/Reserved

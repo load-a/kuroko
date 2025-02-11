@@ -1,0 +1,5 @@
+Kurol Grammar
+
+Instruction = Command, {Parameter}
+Command = Letter {3|4}
+Parameter = "$", Label | ["@"], Keyword | number
