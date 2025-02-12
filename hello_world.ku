@@ -1,3 +1,12 @@
-add 1, 4
-add i+, c
-add 0b11001, 0xFFE
+Main:
+	Add 1 2
+	Save A $0
+	Var $0b10000, Hajime ;this should be fine
+Next:
+	Load 50 B
+	Swap b c
+	COMP VARIABLE
+	JUMP :next
+	CALL :main
+	Mult 5 5
+	Text "This is a string of text", $02

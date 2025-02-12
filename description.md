@@ -145,3 +145,16 @@
 - The **MOVE** command copies values from source to target without modifying the source.
 
 ---
+
+### **Flag Register Bits:**
+Bits are ordered from least to most significant.
+|Bit|Name|When set...|
+|-|-|-|
+|0. |Zero     | Result is zero |
+|1. |Negative   | Result is negative |
+|2. |Carry    | Previous operation used a carry or borrow |
+|3. |Overflow   | Previous *signed operation* exceeded the system's range |
+|4. |Comparison   | The previous comparison was *equal* |
+|5. |Condition  | The previous comparison was *greater-than* |
+|6. |Parity   | Result had an even number of ones |
+|7. |Unused/Reserved||
