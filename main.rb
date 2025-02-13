@@ -17,8 +17,9 @@ puts '---'
 
 par = Parser.new(lex.tokens)
 par.parse
+puts par.tokens
 
-puts '---'
+puts '---', 'NODES'
 
 process = NodeProcessor.new(par.nodes)
 process.process
@@ -29,4 +30,11 @@ process.nodes.each_with_index do |node, number|
   puts
 end
 
+puts 'SYMBOL TABLE'
 display_hash process.symbol_table
+
+puts '---'
+
+computer = CPU.new(process.nodes, process.symbol_table)
+computer.ram[1] = 5
+computer.execute

@@ -3,17 +3,20 @@
 class Parser
 
   UnaryOperationNode = Struct.new(:operation, :operand)
-  BinaryOperationNode = Struct.new(:operation, :operand, :operator)
+  BinaryOperationNode = Struct.new(:operation, :source, :destination)
   MemoryNode = Struct.new(:operation, :source, :target)
   JumpNode = Struct.new(:check, :source, :target, :destination)
   LabelNode = Struct.new(:name, :position)
   RoutineNode = Struct.new(:call, :return)
   StackNode = Struct.new(:action, :target)
   IONode = Struct.new(:operation, :operand, :operator)
+  ExitNode = Struct.new
 
   attr_accessor :tokens, :symbol_table, :pointer, :index, :nodes
   def initialize(tokens)
     self.tokens = tokens
+    tokens.reject! { |token| %i[comment ignore].include? token.type }
+
     self.pointer, self.index = 0, 0
     self.nodes = []
   end
@@ -23,25 +26,22 @@ class Parser
   end
 
   def parse
-    until end_of_stream? do
+    until current_token.type == :end_of_file do
       send("parse_#{current_token.type}")
     end
   end
 
   def end_of_stream?
-    pointer >= tokens.length
+    current_token.type == :end_of_file
   end
 
   def parse_arithmetic_command
     operation = current_token.value.downcase
     consume(:arithmetic_command)
 
-    op1 = parse_operand
-    op2 = parse_operand(true)
-
-    if %w[inc dec].include?(operation) && op2 == :default_operand
-      op2 = 1
-    end
+    source = parse_source
+    destination = parse_destination(true)
+    destination = 1 if %w[inc dec].include?(operation) && destination == :default
 
     symbol =  case operation
               when 'add', 'inc'
@@ -56,7 +56,7 @@ class Parser
                 :%
               end
 
-    nodes << BinaryOperationNode.new(symbol, op1, op2)
+    nodes << BinaryOperationNode.new(symbol, source, destination)
   end
 
   def parse_logic_command
@@ -97,7 +97,7 @@ class Parser
       symbol = :-
       nodes << BinaryOperationNode.new(symbol, op1, op2)
     else
-      enforce(%i[subroutine_call label address])
+      expect(%i[subroutine_call label address])
       destination = parse_operand.to_s.downcase
 
       check =   case operation
@@ -197,13 +197,15 @@ class Parser
 
     case operation
     when 'name', 'var'
-      enforce(:address)
+      expect(:address)
       address = parse_operand
 
-      enforce(:label)
+      expect(:label)
       name = parse_operand
 
       nodes << LabelNode.new(name.downcase, address)
+    when 'halt'
+      nodes << ExitNode.new()
     else
       raise "Command Not implemented #{operation}"
     end
@@ -223,14 +225,12 @@ class Parser
     operand = case current_token.type
               when :register, :index_operation
                 "#{current_token.value.downcase}_register"
-              when :unsigned_integer, :signed_integer
-                if current_token.value =~ /[+\-]?0b/i
-                  current_token.value.to_i(2)
-                elsif current_token.value =~ /[+\-]?0x/i
-                  current_token.value.to_i(16)
-                else
-                  current_token.value.to_i
-                end
+              when :signed_integer
+                sign = current_token.value[0]
+                number = convert_numeric(current_token.value)
+                "#{sign}#{number}"
+              when :unsigned_integer
+                convert_numeric(current_token.value)
               when :subroutine_call
                 current_token.value.gsub(':', '')
               when :identifier, :string, :label, :address, :reference
@@ -243,16 +243,83 @@ class Parser
     operand
   end
 
+  def parse_source
+    expect(:unsigned_integer, :signed_integer, :label, :address, :reference, :register)
+
+    source =  case current_token.type
+              when :register
+                "#{current_token.value.downcase}_register" 
+              when :value
+                current_token.value
+              else
+                convert_numeric(current_token.value)
+              end
+
+    continue_stream
+    source
+  end
+
+  def parse_destination(default = false)
+    if default
+      return :default if end_of_stream? || command?
+    else
+      expect(:label, :address, :reference, :register)
+    end
+
+    destination = if current_token.type == :register
+                    "#{current_token.value.downcase}_register" 
+                  elsif current_token.type == :label
+                    current_token.value
+                  else
+                    convert_numeric(current_token.value)
+                  end
+
+    continue_stream
+    destination
+  end
+
+  def convert_numeric(number)
+    return number if number.is_a? Integer
+
+    if number =~ /[$@]/
+      sign = number[0]
+      number = number[1..]
+    elsif number =~ /[+\-]/
+      sign = number[0]
+    end
+
+    if number =~ /[+\-]?0b/i
+      "#{sign}#{number.to_i(2)}"
+    elsif number =~ /[+\-]?0x/i
+      "#{sign}#{number.to_i(16)}"
+    else
+      "#{sign}#{number.to_i}"
+    end
+  end
+
   def consume(*types)
-    enforce(types)
+    expect(types)
     continue_stream
   end
 
-  def enforce(*types)
+  def expect(*types)
     types = types[0] if types[0].is_a? Array
     unless types.include?(current_token.type)
       raise "Incorrect token. Expected: #{types.join(', ')}; received #{current_token}"
     end
+  end
+
+  def command?
+    %i[
+      arithmetic_command
+      logic_command
+      control_flow_command
+      routines_command
+      stack_command
+      memory_command
+      io_command
+      other_command
+    ].include? current_token.type
   end
 
   def continue_stream

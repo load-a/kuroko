@@ -7,6 +7,8 @@ class Tokenizer
 
   TOKEN_PATTERNS = {
     comment: /;.*/,
+    subroutine_label: /^#{LABEL_PATTERN}:$/,
+    subroutine_call: /:#{LABEL_PATTERN}/,
     arithmetic_command: /\b(ADD|SUB|MUL|MULT|DIV|REM|INC|DEC)\b/i,
     logic_command: /\b(AND|OR|NOT|XOR|LEFT|RGHT)\b/i,
     control_flow_command: /\b(COMP|ZERO|POS|NEG|JUMP|JEQ|JLT|JGT|JGE|JLE)\b/i,
@@ -14,9 +16,7 @@ class Tokenizer
     stack_command: /\b(PUSH|POP|DUMP|RSTR)\b/i,
     memory_command: /\b(MOVE|COPY|LOAD|SAVE|SWAP)\b/i,
     io_command: /\b(TEXT|OUT|IN|INT)\b/i,
-    other_command: /\b(NAME|VAR)\b/i,
-    subroutine_label: /#{LABEL_PATTERN}:/,
-    subroutine_call: /:#{LABEL_PATTERN}/,
+    other_command: /\b(NAME|VAR|HALT)\b/i,
     address: /\$(#{NUMBER_PATTERN}|#{LABEL_PATTERN})/,
     reference: /@(#{NUMBER_PATTERN}|#{LABEL_PATTERN})/,
     label: LABEL_PATTERN,
@@ -25,7 +25,8 @@ class Tokenizer
     string: /"(?:[^"\\]|\\.)*"/,
     unsigned_integer: /#{NUMBER_PATTERN}/,
     signed_integer: /[+\-]#{NUMBER_PATTERN}/,
-    ignore: /,|\s+/,
+    ignore: /,/,
+    whitespace: /\s+/
   }
 
   attr_accessor :source, :tokens
@@ -53,7 +54,8 @@ class Tokenizer
       raise "Unmatched token: '#{source[0]}' \n#{source[...16]}" unless matched
     end
 
-    tokens.reject! { |token| %i[comment ignore].include? token.type }
+    tokens.reject! { |token| token.type == :whitespace }
+    tokens << Token.new(:end_of_file, '')
   end
 
   def display

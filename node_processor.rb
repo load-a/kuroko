@@ -8,7 +8,6 @@ class NodeProcessor
       a_register: '$0',
       b_register: '$1',
       c_register: '$2',
-      d_register: ['$3', '$4'],
       h_register: '$3',
       l_register: '$4',
       i_register: '$5',
