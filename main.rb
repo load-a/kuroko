@@ -36,5 +36,4 @@ display_hash process.symbol_table
 puts '---'
 
 computer = CPU.new(process.nodes, process.symbol_table)
-computer.ram[1] = 5
 computer.execute

@@ -2,9 +2,9 @@
 
 class Parser
 
-  UnaryOperationNode = Struct.new(:operation, :operand)
+  UnaryOperationNode = Struct.new(:operation, :destination)
   BinaryOperationNode = Struct.new(:operation, :source, :destination)
-  MemoryNode = Struct.new(:operation, :source, :target)
+  MemoryNode = Struct.new(:operation, :source, :destination)
   JumpNode = Struct.new(:check, :source, :target, :destination)
   LabelNode = Struct.new(:name, :position)
   RoutineNode = Struct.new(:call, :return)
@@ -39,20 +39,30 @@ class Parser
     operation = current_token.value.downcase
     consume(:arithmetic_command)
 
+    if %w[inc dec].include? operation
+      destination = parse_destination
+
+      source = parse_source(true)
+      source = 1 if source == :default
+
+      symbol = operation == 'inc' ? :+ : :-
+
+      return nodes << BinaryOperationNode.new(symbol, source.to_s, destination)
+    end
+
     source = parse_source
     destination = parse_destination(true)
-    destination = 1 if %w[inc dec].include?(operation) && destination == :default
 
     symbol =  case operation
-              when 'add', 'inc'
+              when 'add'
                 :+
-              when 'sub', 'dec'
+              when 'sub'
                 :-
               when 'mult', 'mul'
                 :*
               when 'div'
                 :/
-              when 'rem'
+              when 'rem', 'mod'
                 :%
               end
 
@@ -63,15 +73,14 @@ class Parser
     operation = current_token.value.downcase
     consume(:logic_command)
 
-    op1 = parse_operand
-
     if operation == 'not'
-      return nodes << UnaryOperationNode.new('!'.to_sym, op1)
+      return nodes << UnaryOperationNode.new('!'.to_sym, parse_destination(true))
     end
 
-    op2 = parse_operand(true)
+    source = parse_source
+    destination = parse_destination(true)
 
-    symbol =  case operation
+    operation =  case operation
               when 'and'
                 :&
               when 'or'
@@ -84,7 +93,7 @@ class Parser
                 :>>
               end
 
-    nodes << BinaryOperationNode.new(symbol, op1, op2)
+    nodes << BinaryOperationNode.new(operation, source, destination)
   end
 
   def parse_control_flow_command
@@ -163,15 +172,18 @@ class Parser
     operation = current_token.value.downcase
     consume(:memory_command)
 
-    source = parse_operand
+    case operation
+    when 'move', 'swap'
+      source = parse_source
+      destination = parse_destination(true)
+    when 'load', 'save'
+      expect(:register)
+      destination = parse_destination
+      expect(:address, :reference, :label)
+      source = parse_source
+    end
 
-    target =  if %w[move copy save].include? operation
-                parse_operand
-              else # 'load' or 'swap'
-                parse_operand(true)
-              end
-
-    nodes << MemoryNode.new(operation, source, target)
+    nodes << MemoryNode.new(operation, source, destination)
   end
 
   def parse_io_command
@@ -243,8 +255,13 @@ class Parser
     operand
   end
 
-  def parse_source
-    expect(:unsigned_integer, :signed_integer, :label, :address, :reference, :register)
+  def parse_source(default = false)
+    if default
+      return :default if end_of_stream? || command? || current_token.type == :subroutine_label
+    else
+      expect(:unsigned_integer, :signed_integer, :label, :address, :reference, :register)
+    end
+
 
     source =  case current_token.type
               when :register
@@ -255,13 +272,13 @@ class Parser
                 convert_numeric(current_token.value)
               end
 
-    continue_stream
+    consume(:unsigned_integer, :signed_integer, :label, :address, :reference, :register)
     source
   end
 
   def parse_destination(default = false)
     if default
-      return :default if end_of_stream? || command?
+      return :default if end_of_stream? || command? || current_token.type == :subroutine_label
     else
       expect(:label, :address, :reference, :register)
     end
@@ -274,7 +291,7 @@ class Parser
                     convert_numeric(current_token.value)
                   end
 
-    continue_stream
+    consume(:label, :address, :reference, :register)
     destination
   end
 
@@ -289,11 +306,11 @@ class Parser
     end
 
     if number =~ /[+\-]?0b/i
-      "#{sign}#{number.to_i(2)}"
+      "#{sign == '-' ? '' : sign}#{number.to_i(2)}"
     elsif number =~ /[+\-]?0x/i
-      "#{sign}#{number.to_i(16)}"
+      "#{sign == '-' ? '' : sign}#{number.to_i(16)}"
     else
-      "#{sign}#{number.to_i}"
+      "#{sign == '-' ? '' : sign}#{number.to_i}"
     end
   end
 

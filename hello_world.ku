@@ -1,5 +1,3 @@
 Main:
-	add +153, B ; Basic Addition
-	ADD $0b11101, $0xfae
-	MUL 15, $5
-	halt
+	move -5
+	dec a

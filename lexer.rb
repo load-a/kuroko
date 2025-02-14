@@ -9,7 +9,7 @@ class Tokenizer
     comment: /;.*/,
     subroutine_label: /^#{LABEL_PATTERN}:$/,
     subroutine_call: /:#{LABEL_PATTERN}/,
-    arithmetic_command: /\b(ADD|SUB|MUL|MULT|DIV|REM|INC|DEC)\b/i,
+    arithmetic_command: /\b(ADD|SUB|MUL|MULT|DIV|REM|MOD|INC|DEC)\b/i,
     logic_command: /\b(AND|OR|NOT|XOR|LEFT|RGHT)\b/i,
     control_flow_command: /\b(COMP|ZERO|POS|NEG|JUMP|JEQ|JLT|JGT|JGE|JLE)\b/i,
     routines_command: /\b(CALL|RTRN)\b/i,
