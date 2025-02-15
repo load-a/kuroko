@@ -21,46 +21,46 @@
 ### **Commands:**
 
 #### **Arithmetic:**
-- **ADD source, target**  
-  *"Add"*: Adds `source` to `target`; stores the sum in `target`.
-- **SUB source, target**  
-  *"Subtract"*: Subtracts `target` from `source`; stores the difference in `target`.
-- **MUL source, target**  
-  *"Multiply"*: Multiplies `source` by `target`; stores the product in `target`.
-- **DIV source, target**  
-  *"Divide"*: Divides `source` by `target`; stores the quotient in `target`.
-- **REM source, target**  
-  *"Remainder"*: Divides `source` by `target`; stores the remainder in `target`.
-- **INC target, step**  
-  *"Increase"*: Adds `step` to `target`; step is 1 by default.
-- **DEC target, step**  
-  *"Decrease"*: Subtracts `step` from `target`; step is 1 by default.
+- **ADD source, destination**  
+  *"Add"*: Adds `source` to `destination`; stores the sum in `destination`.
+- **SUB source, destination**  
+  *"Subtract"*: Subtracts `destination` from `source`; stores the difference in `destination`.
+- **MUL source, destination**  
+  *"Multiply"*: Multiplies `source` by `destination`; stores the product in `destination`.
+- **DIV source, destination**  
+  *"Divide"*: Divides `source` by `destination`; stores the quotient in `destination`.
+- **REM source, destination**  
+  *"Remainder"*: Divides `source` by `destination`; stores the remainder in `destination`.
+- **INC destination, step**  
+  *"Increase"*: Adds `step` to `destination`; step is 1 by default.
+- **DEC destination, step**  
+  *"Decrease"*: Subtracts `step` from `destination`; step is 1 by default.
 
 #### **Logic & Bitwise:**
-- **AND source, target**  
-  *"Logical AND"*: Performs logical AND between `source` and `target`; stores the result in `target`.
-- **OR source, target**  
-  *"Logical OR"*: Performs logical OR between `source` and `target`; stores the result in `target`.
-- **NOT target**  
-  *"Logical NOT"*: Inverts `target`.
-- **XOR source, target**  
-  *"Logical XOR"*: Performs logical XOR between `source` and `target`; stores the result in `target`.
-- **LEFT target, step**  
-  *"Bit Shift Left"*: Shifts the bits in `target` left by `step` number of times; `step` defaults to 1.
-- **RGHT target, step**  
-  *"Bit Shift Right"*: Shifts the bits in `target` right by `step` number of times; `step` defaults to 1.
+- **AND source, destination**  
+  *"Logical AND"*: Performs logical AND between `source` and `destination`; stores the result in `destination`.
+- **OR source, destination**  
+  *"Logical OR"*: Performs logical OR between `source` and `destination`; stores the result in `destination`.
+- **NOT destination**  
+  *"Logical NOT"*: Inverts `destination` by XOR-ing it with 0xFF.
+- **XOR source, destination**  
+  *"Logical XOR"*: Performs logical XOR between `source` and `destination`; stores the result in `destination`.
+- **LEFT destination, step**  
+  *"Bit Shift Left"*: Shifts the bits in `destination` left by `step` number of times; `step` defaults to 1.
+- **RGHT destination, step**  
+  *"Bit Shift Right"*: Shifts the bits in `destination` right by `step` number of times; `step` defaults to 1.
 
 #### **Control Flow:**
 
 - **Branching (comparison with Zero):**
-  - **COMP source, target**  
-    *"Compare"*: Subtracts `target` from `source`, setting the Flag register based on the result.
-  - **ZERO destination**  
-    *"Branch if Zero"*: Jumps to `destination` if the Zero flag is set.
-  - **POS destination**  
-    *"Branch if Positive"*: Jumps to `destination` if no flags are set.
-  - **NEG destination**  
-    *"Branch if Negative"*: Jumps to `destination` if the Negative flag is set.
+  - **COMP source, destination**  
+    *"Compare"*: Subtracts `destination` from `source`, setting the Flag register based on the result.
+  - **ZERO offset**  
+    *"Branch if Zero"*: Jumps to `offset` if the Zero flag is set.
+  - **POS offset**  
+    *"Branch if Positive"*: Jumps to `offset` if no flags are set.
+  - **NEG offset**  
+    *"Branch if Negative"*: Jumps to `offset` if the Negative flag is set.
 
 - **Jumps (comparison with Accumulator):**
   - **JUMP destination**  
@@ -93,14 +93,14 @@
   *"Restore Registers"*: Restores each register in reverse order from the stack.
 
 #### **Memory:**
-- **MOVE source, target**  
-  *"Move Value"*: Copies the value from `source` into `target`.
+- **MOVE source, destination**  
+  *"Move Value"*: Copies the value from `source` into `destination`.
 - **LOAD register, source**  
   *"Load Register"*: Copies a value from memory into `register`. Supports immediate values.
-- **SAVE register, target**  
-  *"Save Register"*: Copies the value from `register` into `target`.
-- **SWAP source, target**  
-  *"Swap Values"*: Swaps the values of `source` and `target` (at least one of them must be a register).
+- **SAVE register, destination**  
+  *"Save Register"*: Copies the value from `register` into `destination`.
+- **SWAP source, destination**  
+  *"Swap Values"*: Swaps the values of `source` and `destination` (at least one of them must be a register).
 
 #### **Input/Output:**
 - **TEXT destination, string**  
@@ -122,7 +122,7 @@
 
 - **User Accessible:**
   - **A (Accumulator)**  
-    Used for arithmetic results, and is the inferred target for any operation (e.g., `ADD 4` is equivalent to `ADD 4, A`).
+    Used for arithmetic results, and is the inferred destination for any operation (e.g., `ADD 4` is equivalent to `ADD 4, A`).
   - **B, C (Bank Registers)**  
     General-purpose storage.
   - **H, L (Data Registers)**  
@@ -142,7 +142,7 @@
 
 ### **Additional Notes:**
 - The **OUT** command stops printing when it encounters a null character or exceeds the specified byte limit.
-- The **MOVE** command copies values from source to target without modifying the source.
+- The **MOVE** command copies values from source to destination without modifying the source.
 
 ---
 

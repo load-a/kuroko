@@ -4,12 +4,13 @@ class Parser
 
   UnaryOperationNode = Struct.new(:operation, :destination)
   BinaryOperationNode = Struct.new(:operation, :source, :destination)
+  CompareNode = Struct.new(:source1, :source2)
   MemoryNode = Struct.new(:operation, :source, :destination)
   JumpNode = Struct.new(:check, :source, :target, :destination)
   LabelNode = Struct.new(:name, :position)
   RoutineNode = Struct.new(:call, :return)
   StackNode = Struct.new(:action, :target)
-  IONode = Struct.new(:operation, :operand, :operator)
+  IONode = Struct.new(:operation, :destination, :modifier)
   ExitNode = Struct.new
 
   attr_accessor :tokens, :symbol_table, :pointer, :index, :nodes
@@ -32,7 +33,7 @@ class Parser
   end
 
   def end_of_stream?
-    current_token.type == :end_of_file
+    current_token.nil?
   end
 
   def parse_arithmetic_command
@@ -77,6 +78,14 @@ class Parser
       return nodes << UnaryOperationNode.new('!'.to_sym, parse_destination(true))
     end
 
+    if %w[left rght].include? operation
+      destination = parse_destination
+      step = parse_source(true)
+      step = 1 if step == :default
+      operation = operation == 'rght' ? :>> : :<<
+      return nodes << BinaryOperationNode.new(operation, step, destination)
+    end
+
     source = parse_source
     destination = parse_destination(true)
 
@@ -87,10 +96,6 @@ class Parser
                 :|
               when 'xor'
                 '^'.to_sym
-              when 'left'
-                :<<
-              when 'rght'
-                :>>
               end
 
     nodes << BinaryOperationNode.new(operation, source, destination)
@@ -101,13 +106,17 @@ class Parser
     consume(:control_flow_command)
 
     if operation == 'comp'
-      op1 = parse_operand
-      op2 = parse_operand(true)
-      symbol = :-
-      nodes << BinaryOperationNode.new(symbol, op1, op2)
+      source1 = parse_source
+      source2 = parse_source
+      nodes << CompareNode.new(source1, source2)
     else
-      expect(%i[subroutine_call label address])
-      destination = parse_operand.to_s.downcase
+      destination = current_token.value
+      
+      if %w[zero pos neg].include? operation 
+        consume(:unsigned_integer, :signed_integer)
+      else
+        consume(:subroutine_call)
+      end
 
       check =   case operation
                 when 'zero', 'jeq', 'jump'
@@ -179,7 +188,7 @@ class Parser
     when 'load', 'save'
       expect(:register)
       destination = parse_destination
-      expect(:address, :reference, :label)
+      # expect(:address, :reference, :label, :unsigned_integer, :signed_integer)
       source = parse_source
     end
 
@@ -191,14 +200,18 @@ class Parser
     consume(:io_command)
 
     if operation == 'text'
-      text = parse_operand
-      address = parse_operand
-      return nodes << IONode.new(operation, text, address)
+      expect(:string)
+      text = current_token.value[1..-2]
+      consume(:string)
+
+      raise "Cannot write String to register" if current_token.type == :register
+      address = parse_destination
+      return nodes << IONode.new(operation, address, text)
     end
 
-    address = parse_operand
-    limit = parse_operand(true)
-    limit = 0 if limit == :default_operand
+    address = parse_destination
+    limit = parse_source(true)
+    limit = -1 if limit == :default
 
     nodes << IONode.new(operation, address, limit)
   end
@@ -240,7 +253,7 @@ class Parser
               when :signed_integer
                 sign = current_token.value[0]
                 number = convert_numeric(current_token.value)
-                "#{sign}#{number}"
+                "#{sign unless sign == '-'}#{number}"
               when :unsigned_integer
                 convert_numeric(current_token.value)
               when :subroutine_call
@@ -257,7 +270,7 @@ class Parser
 
   def parse_source(default = false)
     if default
-      return :default if end_of_stream? || command? || current_token.type == :subroutine_label
+      return :default if current_token.type == :end_of_file || command? || current_token.type == :subroutine_label
     else
       expect(:unsigned_integer, :signed_integer, :label, :address, :reference, :register)
     end
@@ -278,7 +291,7 @@ class Parser
 
   def parse_destination(default = false)
     if default
-      return :default if end_of_stream? || command? || current_token.type == :subroutine_label
+      return :default if current_token.type == :end_of_file || command? || current_token.type == :subroutine_label
     else
       expect(:label, :address, :reference, :register)
     end

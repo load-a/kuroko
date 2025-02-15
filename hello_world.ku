@@ -1,3 +1,13 @@
 Main:
-	move -5
-	dec a
+	move 2 c
+	Text "This is an even bigger test" $10
+	Name $10 Words
+	add c b
+	add 5
+	comp a 6
+	neg -2
+	pos 3
+Loop:
+	Move 0xff A
+	halt
+	Out $10
