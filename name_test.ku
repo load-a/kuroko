@@ -1,0 +1,5 @@
+NAME $10 local
+MOVE 1 $local
+MOVE 2 @local
+
+

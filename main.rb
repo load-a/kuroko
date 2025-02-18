@@ -13,7 +13,7 @@ puts '--- Tokenizer'
 
 lex = Tokenizer.new(ARGV[0])
 lex.tokenize
-lex.display
+# lex.display
 
 puts '--- Parser'
 
@@ -47,4 +47,4 @@ puts '^ - - output - - ^'
 # computer.view_stack
 # computer.view_ram(:dec, :dec)
 
-computer.display(:hex, :binary)
+computer.display(:hex, :dec)

@@ -228,12 +228,13 @@ class Parser
     case operation
     when 'name', 'var'
       expect(:address)
-      address = parse_operand
+      address = parse_destination
 
       expect(:label)
-      name = parse_operand
+      name = current_token.value.downcase
+      consume(:label)
 
-      nodes << LabelNode.new(name.downcase, address)
+      nodes << LabelNode.new(name, address)
     when 'halt'
       nodes << ExitNode.new()
     else
@@ -286,7 +287,11 @@ class Parser
               when :value
                 current_token.value
               else
-                convert_numeric(current_token.value)
+                if current_token.value =~ /[@$][_a-z][_a-z0-9\-]+/i
+                  current_token.value
+                else
+                  convert_numeric(current_token.value)
+                end
               end
 
     consume(:unsigned_integer, :signed_integer, :label, :address, :reference, :register)
@@ -305,7 +310,11 @@ class Parser
                   elsif current_token.type == :label
                     current_token.value
                   else
-                    convert_numeric(current_token.value)
+                    if current_token.value =~ /[@$][_a-z][_a-z0-9\-]+/i
+                      current_token.value
+                    else
+                      convert_numeric(current_token.value)
+                    end
                   end
 
     consume(:label, :address, :reference, :register)

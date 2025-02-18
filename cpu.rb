@@ -175,7 +175,7 @@ class CPU
       puts 
     elsif operation == 'in'
       ARGV.clear
-      print "$ >> "
+      print ">> "
       chars = gets.chomp.bytes[0..limit]
       chars.each_with_index do |byte, offset|
         ram[destination_address + offset] = byte
@@ -244,6 +244,11 @@ class CPU
   # Receives an address or reference pointer and returns the corresponding RAM value
   def lookup(item)
     return ram[get_address(REGISTERS.fetch(item.to_sym))] if item =~ /register/
+    if item =~ /[@$][_a-z]/i
+      return ram[ram[get_address(symbol_table[item.sub('$', '')])]] if item.include? '@'
+      puts "HERE"
+      return ram[get_address(symbol_table[item.sub('$', '')])] if item.include? '$'
+    end
 
     number = extract_number(item)
 
@@ -257,6 +262,8 @@ class CPU
     return nil if value == :default
     return value if value.is_a? Integer
     return extract_number(REGISTERS[value.to_sym]) if value =~ /register/
+
+    value = symbol_table[value.sub(/[@$]/, '')] if value =~ /[@$][_a-z]/i
 
     value.include?('@') ? ram[extract_number(value)].to_i : extract_number(value)
   end

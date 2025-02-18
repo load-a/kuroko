@@ -57,7 +57,7 @@ class NodeProcessor
       end
 
       offset += 1
-      symbol_table[node.name.sub(':', '')] = node.position
+      symbol_table[node.name.sub(':', '')] = node.position # entry key is a String
     end
 
     nodes.reject! { |node| node.is_a?(Parser::LabelNode) && symbol_table.keys.include?(node.name) }
