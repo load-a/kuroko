@@ -7,7 +7,7 @@ class Tokenizer
 
   TOKEN_PATTERNS = {
     comment: /;.*/,
-    subroutine_label: /^#{LABEL_PATTERN}:$/,
+    subroutine_label: /#{LABEL_PATTERN}:/,
     subroutine_call: /:#{LABEL_PATTERN}/,
     arithmetic_command: /\b(ADD|SUB|MUL|MULT|DIV|REM|MOD|INC|DEC)\b/i,
     logic_command: /\b(AND|OR|NOT|XOR|LEFT|RGHT)\b/i,

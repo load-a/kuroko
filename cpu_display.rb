@@ -74,30 +74,40 @@ module CPUDisplay
       end
     end
 
+    def signed_byte(num)
+      num &= 0xff
+      num -= 256 if num >= 128
+      num
+    end
+
     address_format = formats.fetch(address_base, '%03i')
     value_format = formats.fetch(value_base, '%03i')
     
     puts "* RAM *"
 
     ram.each_with_index do |value, index|
+      text = Rainbow(value_format % (value & 0xFF))
+
       if index % 8 == 0
         puts unless index.zero?
         printf Rainbow(address_format % index).italic
         print '. '
       end
 
+      # puts "VALUE IS #{value}"
+
       case index
       when ...7
-        print Rainbow(value_format % value).blue
+        print text.blue
       when 7...9
-        print Rainbow(value_format % value).red
+        print text.red
       when 9
-        print Rainbow(value_format % value).magenta
+        print text.magenta
       when 10...240
         # string =
-        print value.zero? ? Rainbow(value_format % value).faint : Rainbow(value_format % value)
+        print value.zero? ? text.faint : text
       when 240...256
-        stack_element = Rainbow(value_format % value).yellow
+        stack_element = text.yellow
         stack_element = stack_element.underline if index == stack_pointer
         print stack_element
       end

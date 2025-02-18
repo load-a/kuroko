@@ -112,12 +112,6 @@
 - **INT destination, limit**  
   *"Convert to Integer"*: Converts each character at `destination` into an integer (or zero) until null or `limit`.
 
-#### **Constants (used as operands):**
-- **TRUE, FALSE**  
-  *True* is any non-zero value (usually 1 or -1), and *False* is 0.
-- **MIN, MAX**  
-  *MIN* is 0, and *MAX* is 255 (or -128 and 127 if signed).
-
 #### **Registers:**
 
 - **User Accessible:**

@@ -11,3 +11,29 @@ Loop:
 	Move 0xff A
 	halt
 	Out $10
+Stack:
+	Push A
+	Pop L
+	move -1 a
+	move -2 b
+	move -3 c
+	move -4 h
+	move -5 l
+	move -6 i
+	move -7 j
+	DUMP
+	CALL :clear-registers
+INPUT:
+	IN $0x30
+	HALT
+	RSTR
+Clear-Registers:
+	move 0 a
+	move 0 b
+	move 0 c
+	move 0 h
+	move 0 l
+	move 0 i
+	move 0 j
+	RTRN
+

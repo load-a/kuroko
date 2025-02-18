@@ -65,6 +65,40 @@ class CPU
         self.flag_register += 32 if source1 > source2
       elsif this_instruction.is_a? Parser::JumpNode
         perform_jump_instruction
+      elsif this_instruction.is_a? Parser::StackNode
+        case this_instruction.action
+        when 'push'
+          ram[stack_pointer] = get_value(this_instruction.target)
+          self.stack_pointer -= 1
+        when 'pop'
+          self.stack_pointer += 1
+          ram[get_address(this_instruction.target)] = ram[stack_pointer]
+        when 'dump'
+          REGISTERS.each do |name, address|
+            break if %i[program_counter stack_pointer flag_register].include? name
+            ram[stack_pointer] = lookup("$#{address}")
+            self.stack_pointer -= 1
+          end
+        when 'rstr'
+          register = 6
+
+          7.times do 
+            self.stack_pointer += 1
+            ram[register] = ram[stack_pointer]
+            register -= 1
+          end
+        end
+      elsif this_instruction.is_a? Parser::RoutineNode
+        if this_instruction.call.nil?
+          self.stack_pointer += 1
+          goto = ram[stack_pointer]
+          self.program_counter = goto - 1
+        else
+          goto = this_instruction.call
+          ram[stack_pointer] = this_instruction.return
+          self.stack_pointer -= 1
+          self.program_counter = goto - 1
+        end
       else
         raise "Not implemented: #{this_instruction.class}"
       end
@@ -83,7 +117,7 @@ class CPU
 
     raise "Cannot write to Addresses $7-$9" if destination_address.between?(7, 9)
 
-    result =  if %i[- / % << >>].include? operation
+    result =  if %i[<< >>].include? operation
                 destination_value.send(operation, source_value)
               else
                 source_value.send(operation, destination_value)
@@ -115,6 +149,7 @@ class CPU
   end
 
   def perform_io_instruction
+
     operation = this_instruction.operation
     destination_address = get_address(this_instruction.destination)
     modifier = get_value(this_instruction.modifier)
@@ -138,6 +173,13 @@ class CPU
         offset += 1
       end
       puts 
+    elsif operation == 'in'
+      ARGV.clear
+      print "$ >> "
+      chars = gets.chomp.bytes[0..limit]
+      chars.each_with_index do |byte, offset|
+        ram[destination_address + offset] = byte
+      end
     end
   end
 
@@ -146,7 +188,7 @@ class CPU
     source = get_value(this_instruction.source)
     target = get_value(this_instruction.target)
 
-    if source == flag_register
+    if this_instruction.source == :flag_register
       instruction_offset = this_instruction.destination.to_i - 1
 
       case comparison
@@ -191,7 +233,7 @@ class CPU
     if item.start_with?('+', '-') || item.to_i.to_s == item
       item.to_i.negative? ? item.to_i.clamp(-128, 127) : item.to_i
     elsif item.start_with?('@', '$')
-      extract_number(item)
+      lookup(item)
     elsif this_instruction.operation == 'text'
       item
     else

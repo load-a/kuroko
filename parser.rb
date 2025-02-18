@@ -45,10 +45,9 @@ class Parser
 
       source = parse_source(true)
       source = 1 if source == :default
+      source = source.to_i * -1 if operation == 'dec'
 
-      symbol = operation == 'inc' ? :+ : :-
-
-      return nodes << BinaryOperationNode.new(symbol, source.to_s, destination)
+      return nodes << BinaryOperationNode.new(:+, source.to_s, destination)
     end
 
     source = parse_source
@@ -142,7 +141,7 @@ class Parser
         target = :a_register
       end
 
-      nodes << JumpNode.new(check, source, target, destination)
+      nodes << JumpNode.new(check, source, target, destination.downcase)
     end
   end
 
@@ -211,7 +210,13 @@ class Parser
 
     address = parse_destination
     limit = parse_source(true)
-    limit = -1 if limit == :default
+    if limit == :default
+      if operation == 'in'
+        limit = 0
+      else
+        limit = -1
+      end
+    end
 
     nodes << IONode.new(operation, address, limit)
   end
@@ -274,7 +279,6 @@ class Parser
     else
       expect(:unsigned_integer, :signed_integer, :label, :address, :reference, :register)
     end
-
 
     source =  case current_token.type
               when :register

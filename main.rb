@@ -45,6 +45,6 @@ puts '^ - - output - - ^'
 # computer.view_registers
 # computer.view_status
 # computer.view_stack
-computer.view_ram(:dec, :binary)
+# computer.view_ram(:dec, :dec)
 
-# computer.display(:hex, :hex)
+computer.display(:hex, :binary)
