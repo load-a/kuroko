@@ -3,19 +3,6 @@
 require 'rainbow'
 
 module CPUDisplay
-  REGISTERS = {
-    a_register: 0,
-    b_register: 1,
-    c_register: 2,
-    h_register: 3,
-    l_register: 4,
-    i_register: 5,
-    j_register: 6,
-    program_counter: 7,
-    stack_pointer: 8,
-    flag_register: 9,
-  }
-  
   def view_registers
     puts '* REGISTERS *'
     REGISTERS.each do |name, address|
