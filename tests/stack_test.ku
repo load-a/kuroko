@@ -1,0 +1,45 @@
+MOVE 111 A
+SAVE A $10
+MOVE 222 B
+SAVE B $11
+
+PUSH A
+PUSH B
+
+POP A
+POP B
+
+move -1 a
+move -2 b
+move -3 c
+move -4 h
+move -5 l
+move -6 i
+move -7 j
+DUMP
+
+MOVE 248 A
+MOVE 255 i
+MOVE 12 j
+CALL :WRITE-TO-MEMORY
+CALL :CLEAR-REGISTERS
+
+RSTR
+HALT
+
+WRITE-TO-MEMORY:
+	MOVE @I @J
+	DEC I
+	INC J
+	JGT :WRITE-TO-MEMORY I
+	RTRN
+CLEAR-REGISTERS:
+	move 0 a
+	move 0 b
+	move 0 c
+	move 0 h
+	move 0 l
+	move 0 i
+	move 0 j
+	RTRN
+

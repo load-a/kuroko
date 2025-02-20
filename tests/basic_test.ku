@@ -1,0 +1,6 @@
+NAME $10 local_var
+MOVE 5 A
+SAVE A $local_var
+MOVE $5 A
+LOAD A 5
+

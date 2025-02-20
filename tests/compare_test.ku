@@ -1,0 +1,44 @@
+BRANCHING:
+	MOVE 1 A
+	MOVE 0 B
+	MOVE 10 C
+	TEXT "GT" $10
+	TEXT "EQ" $12
+	TEXT "LT" $14
+	COMP A B
+	POS  6	; Jump 6 lines down if (A - B) is positive
+	ZERO 4	; Jump 4 lines down if (A - B) is zero
+	NEG  2	; Jump 2 lines down if (A - B) is negative
+	HALT
+	ADD 2 C
+	ADD 2 C
+	OUT @2 2
+LOOPING:
+	MOVE 10 A
+	INC I
+	JLT :LOOPING I
+JUMPING:
+	JGT :great C		; C >  A
+	JGE :great-equal C	; C >= A
+	JEQ :equal C		; C == A
+	JLE :less-equal C	; C <= A
+	JLT :less C			; C <  A
+	JUMP :END			; Unconditional Jump - It's not actually possible to execute this line
+	GREAT:
+		MOVE 111 B
+		HALT
+	GREAT-EQUAL:
+		MOVE 123 B
+		HALT
+	EQUAL: 
+		MOVE 222 B
+		HALT
+	LESS: 
+		MOVE 255 B
+		HALT
+	LESS-EQUAL:
+		MOVE 234 B
+		HALT
+	END:
+		MOVE 3 B
+		HALT
