@@ -199,7 +199,3 @@ These are general-purpose, but some are named for convenience.
 ### Conclusion
 
 Kuroko is a unique approach to assembly-style programming, designed to be accessible, educational, and simple while maintaining the power and flexibility of assembly logic. This makes it perfect for anyone looking to dive deeper into low-level programming concepts.
-
----
-
-Let me know if you'd like any further changes!
