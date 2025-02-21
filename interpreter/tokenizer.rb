@@ -9,7 +9,7 @@ class Tokenizer
     subroutine: %w[call rtrn],
     stack: %w[push pop dump rstr],
     memory: %w[move copy load save swap],
-    io: %w[text out in int],
+    io: %w[text out in],
     other: %w[name var halt pic]
   }
 

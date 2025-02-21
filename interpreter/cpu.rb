@@ -113,10 +113,10 @@ class CPU
       }
 
       address = instruction.direct_object.value & 0b11000000
-      values = instruction.direct_object.value &  0b00110000
-      image = instruction.direct_object.value &   0b00001111
+      values = instruction.direct_object.value & 0b00110000
+      image = instruction.direct_object.value & 0b00001111
 
-      puts "PICTURE ##{program_counter - 1}. #{rom[program_counter - 1].to_s}:"
+      puts '- - -', "PICTURE of ##{program_counter - 1} #{rom[program_counter - 1].to_s}:"
       view_registers if image & 1 == images[:registers]
       view_status if image & 2 == images[:flags]
       view_stack if image & 4 == images[:stack]

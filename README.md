@@ -12,7 +12,7 @@ Kuroko is a simple, educational, assembly-like language designed for learning fu
 - Subroutines are declared with the `LABEL:` syntax and called using `:LABEL`.
 - Numbers are unsigned by default (range: 0–255). A leading `+` or `-` denotes a signed integer (range: -128 to 127).
 - Only whole integers are supported.
-- Supports Hex, Decimal, and Binary representations.
+- Supports Hex, Decimal, Octal and Binary representations.
 - Registers: **A**, **B**, **C**, **H**, **L**, **I**, **J**.
 - The syntax for operations follows a `VERB DIRECT-OBJECT INDIRECT-OBJECT` structure (e.g., "DO THIS with/using/into THIS").
 - Math and logical operations use the structure `OPERAND operation OPERATOR`. For example, `ADD 1 2` means `1 + 2` and `DIV 10 5` means `10 / 5`.

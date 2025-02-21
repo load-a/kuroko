@@ -1,0 +1,82 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/syntax.html
+file_extensions:
+  - ku
+scope: source.kuroko
+contexts:
+  main:
+    # Strings begin and end with quotes, and use backslashes as an escape
+    # character
+    - match: '"'
+      scope: punctuation.definition.string.begin.kuroko
+      push: double_quoted_string
+
+    # Comments begin with a ';' and finish at the end of the line
+    - match: ';'
+      scope: punctuation.definition.comment.kuroko
+      push: line_comment
+
+    # Keywords
+    # Note that blackslashes don't need to be escaped within single quoted
+    # strings in YAML. When using single quoted strings, only single quotes
+    # need to be escaped: this is done by using two single quotes next to each
+    # other.
+    - match: '\b(?i)(add|sub|mul|mult|div|rem|mod|inc|dec)\b'
+      scope: keyword.arithmetic.kuroko
+
+    - match: '\b(?i)(and|or|not|xor|left|rght)\b'
+      scope: keyword.logic.kuroko
+
+    - match: '\b(?i)(comp|zero|pos|neg|jump|jeq|jlt|jgt|jge|jle)\b'
+      scope: keyword.branch.kuroko
+
+    - match: '\b(?i)(call|rtrn)\b'
+      scope: keyword.subroutine.kuroko
+
+    - match: '\b(?i)(push|pop|dump|rstr)\b'
+      scope: keyword.stack.kuroko
+
+    - match: '\b(?i)(move|copy|load|save|swap)\b'
+      scope: keyword.memory.kuroko
+
+    - match: '\b(?i)(text|out|in)\b'
+      scope: keyword.io.kuroko
+
+    - match: '\b(?i)(name|var|halt|pic)\b'
+      scope: keyword.other.kuroko
+
+    # Numbers
+    - match: '(?i)[+\-]?(0b[01]+|0x[0-9a-f]+|0o[0-7]+|[0-9]+)'
+      scope: constant.numeric.kuroko
+
+    # Location
+    - match: '(?i)[@$][_a-z][_a-z0-9]+|[@$]?[+\-]?(0b[01]+|0x[0-9a-f]+|0o[0-7]+|[0-9]+)'
+      scope: label.address.kuroko
+
+    # Registers
+    - match: '(?i)[@$]?[abchlij]\b'
+      scope: constant.register.kuroko
+
+    # Labels
+    - match: '(?i)([_a-z][_a-z0-9]+):'
+      scope: label.subroutine.kuroko
+
+    - match: '(?i)[_a-z][_a-z0-9]+'
+      scope: label.variable.kuroko
+
+    - match: '(?i):[_a-z][_a-z0-9]+'
+      scope: label.call.kuroko
+
+  double_quoted_string:
+    - meta_scope: string.quoted.double.kuroko
+    - match: '\\.'
+      scope: constant.character.escape.kuroko
+    - match: '"'
+      scope: punctuation.definition.string.end.kuroko
+      pop: true
+
+  line_comment:
+    - meta_scope: comment.line.kuroko
+    - match: $
+      pop: true

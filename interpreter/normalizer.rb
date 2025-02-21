@@ -52,6 +52,8 @@ class Normalizer
       numeric.to_i(2)
     elsif  numeric =~ /[+\-]?0x/i
       numeric.to_i(16)
+    elsif numeric =~ /[+\-]?0o/i
+      numeric.to_i(8)
     else
       numeric.to_i
     end
