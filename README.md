@@ -1,4 +1,8 @@
-# **Kuroko Language Description**
+# **Kuroko Language**
+
+Kuroko is a simple, educational, assembly-like language designed for learning fundamental low-level programming concepts. It uses a readable syntax, with a focus on clarity and accessibility, making it an ideal stepping stone for those interested in assembly programming. Kuroko is machine-agnostic, simulating an 8-bit environment for educational purposes.
+
+---
 
 ## **General Rules**
 - The language is case-insensitive.
@@ -15,7 +19,26 @@
 - The **A Register** is the default second operand. If **A** is the first operand, a second operand must be present (when applicable).
 - Strings are terminated with a Null Character (0x00). The user must manually ensure null separation.
 - Optional operands are enclosed in brackets. Default values, if any, are specified.
-- Registers are kept in addresses $0-$10. Users can use addresses $10 onward.
+
+---
+
+## **Memory Layout**
+The language has a total of **256 addresses**. The first **10 addresses** are reserved for the **registers**. Users are free to write to addresses starting from **$10** onwards.
+
+---
+
+## **Example Program**
+
+Here is a simple "Hello, World!" example in Kuroko:
+
+```assembly
+NAME $10 MESSAGE           ; Create a label for address $10
+TEXT "Hello, World!" $MESSAGE   ; Store the message at the MESSAGE address
+
+OUT $MESSAGE              ; Output the message to the console
+
+HALT                      ; End execution
+```
 
 ---
 
@@ -164,25 +187,19 @@ These are general-purpose, but some are named for convenience.
 - **H, L (Data Registers)**  
   Named for handling address data.
 - **I, J (Index Registers)**  
-  Typically used for loops and iterators.
+  Used for looping or managing specific memory addresses.
 
-### **Inaccessible Registers:**
-These cannot be read from or written to directly.
-- **Flag Register**  
-  Holds status flags. Cannot be read or written directly.
-  - **Flag Bits:**
-    | Bit | Name       | Description                    |
-    | --- | ---------- | ------------------------------ |
-    | 0   | Zero       | Result is zero                 |
-    | 1   | Negative   | Result is negative             |
-    | 2   | Carry      | Previous operation had carry   |
-    | 3   | Overflow   | Signed operation overflowed    |
-    | 4   | Comparison | Previous comparison was equal  |
-    | 5   | Condition  | Previous comparison was >      |
-    | 6   | Parity     | Result had even number of ones |
-    | 7   | Reserved   | Unused                         |
-  
-- **Program Counter (PC)**  
-  Holds the address of the current instruction.
-- **Stack Pointer (SP)**  
-  Points to the next available address in the stack.
+### **Internal Registers:**
+- **Flag Register:** Stores condition flags (Zero, Carry, Negative, etc.).
+- **PC (Program Counter):** Tracks the current instruction.
+- **SP (Stack Pointer):** Points to the current location in the stack.
+
+---
+
+### Conclusion
+
+Kuroko is a unique approach to assembly-style programming, designed to be accessible, educational, and simple while maintaining the power and flexibility of assembly logic. This makes it perfect for anyone looking to dive deeper into low-level programming concepts.
+
+---
+
+Let me know if you'd like any further changes!
