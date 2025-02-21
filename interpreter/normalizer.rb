@@ -15,7 +15,7 @@ class Normalizer
       when :number
         new_value = convert_to_integer(token.value)
         if token.subtype == :integer
-          new_value &= 0xFF
+          new_value.clamp(-128, 127)
         else
           new_value %= 256
         end

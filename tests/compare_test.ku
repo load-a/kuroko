@@ -1,6 +1,9 @@
+NAME $20 RESULT
+NAME $21 RESULT2
+
 BRANCHING:
 	MOVE 1 A
-	MOVE 0 B
+	MOVE 2 B
 	MOVE 10 C
 	TEXT "GT" $10
 	TEXT "EQ" $12
@@ -18,27 +21,31 @@ LOOPING:
 	INC I
 	JLT :LOOPING I
 JUMPING:
+	MOVE 9 C			; Change this to test jumps. (A = 10 from line 20.)
 	JGT :great C		; C >  A
-	JGE :great-equal C	; C >= A
+	JGE :great_equal C	; C >= A
 	JEQ :equal C		; C == A
-	JLE :less-equal C	; C <= A
+	JLE :less_equal C	; C <= A
 	JLT :less C			; C <  A
 	JUMP :END			; Unconditional Jump - It's not actually possible to execute this line
 	GREAT:
-		MOVE 111 B
+		MOVE 62 $RESULT
 		HALT
-	GREAT-EQUAL:
-		MOVE 123 B
+	GREAT_EQUAL:
+		MOVE 62 $RESULT
+		MOVE 61 $RESULT2
 		HALT
 	EQUAL: 
-		MOVE 222 B
+		MOVE 61 $RESULT
+		MOVE 61 $RESULT2
 		HALT
 	LESS: 
-		MOVE 255 B
+		MOVE 60 $RESULT
 		HALT
-	LESS-EQUAL:
-		MOVE 234 B
+	LESS_EQUAL:
+		MOVE 60 $RESULT
+		MOVE 61 $RESULT2
 		HALT
 	END:
-		MOVE 3 B
+		MOVE 88 $RESULT
 		HALT

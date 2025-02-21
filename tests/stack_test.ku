@@ -9,37 +9,38 @@ PUSH B
 POP A
 POP B
 
-move -1 a
-move -2 b
-move -3 c
-move -4 h
-move -5 l
-move -6 i
-move -7 j
+move 0x53 j
+move 0x74 i
+move 0x61 l
+move 0x63 h
+move 0x6b c
+move 0x21 b
+move 0x00 a
 DUMP
 
 MOVE 248 A
 MOVE 255 i
 MOVE 12 j
-CALL :WRITE-TO-MEMORY
-CALL :CLEAR-REGISTERS
 
+CALL :WRITE_TO_MEMORY
 RSTR
+
+CALL :CLEAR_REGISTERS
 HALT
 
-WRITE-TO-MEMORY:
+WRITE_TO_MEMORY:
 	MOVE @I @J
 	DEC I
 	INC J
-	JGT :WRITE-TO-MEMORY I
+	JGT :WRITE_TO_MEMORY I
 	RTRN
-CLEAR-REGISTERS:
-	move 0 a
-	move 0 b
-	move 0 c
-	move 0 h
-	move 0 l
-	move 0 i
-	move 0 j
+CLEAR_REGISTERS:
+	move 0x43 a
+	move 0x6c b
+	move 0x65 c
+	move 0x61 h
+	move 0x72 l
+	move 0x65 i
+	move 0x64 j
 	RTRN
 

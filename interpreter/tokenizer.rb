@@ -10,7 +10,7 @@ class Tokenizer
     stack: %w[push pop dump rstr],
     memory: %w[move copy load save swap],
     io: %w[text out in int],
-    other: %w[name var halt]
+    other: %w[name var halt pic]
   }
 
   class Token

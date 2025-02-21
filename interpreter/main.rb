@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-NUMBER_PATTERN = /[+\-]?(0b[01]|0x[0-9a-f]|[0-9])+/i
-LABEL_PATTERN = /[_a-z][_a-z0-9\-]+/i
+NUMBER_PATTERN = /[+\-]?(0b[01]+|0x[0-9a-f]+|[0-9]+)/i
+LABEL_PATTERN = /[_a-z][_a-z0-9]+/i
 REGISTER_PATTERN = /\b[abcdhlij]\b/i
 REGISTERS = {
       a_register: '$0',
@@ -32,31 +32,31 @@ puts '--LEXER--'
 source = File.read ARGV[0]
 lexer = Lexer.new(source)
 lexer.process
-# lexer.show_units
+lexer.show_units
 
 puts '--TOKENIZER--'
 tokenizer = Tokenizer.new(lexer.units)
 tokenizer.tokenize
-# tokenizer.show_tokens
+tokenizer.show_tokens
 
 puts '--NORMALIZER--'
 norm = Normalizer.new(tokenizer.tokens)
 norm.normalize
-# puts norm.log
+puts norm.log
 
 puts '--PARSER--'
 par = Parser.new(tokenizer.tokens)
 par.parse
-# par.show_instructions
+par.show_instructions
 
 puts '--SYMBOLIZER--'
 sym = Symbolizer.new(par.instructions)
 sym.process
-# display_hash sym.symbol_table
-# par.show_instructions
+display_hash sym.symbol_table
+par.show_instructions
 
 puts '--CENTERAL PROCESSING UNIT--'
 cpu = CPU.new(par.instructions, sym.symbol_table)
 cpu.run
 puts '- - Input/Output - -'
-cpu.display(:hex, :hex)
+cpu.display(:dec, :dec)

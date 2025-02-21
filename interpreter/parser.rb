@@ -86,7 +86,7 @@ class Parser
               end
 
     if group.length == 3
-      expect_type(group[2], :number, :variable, :register, :address)
+      expect_type(group[2], :variable, :register, :address)
       destination = group[2]
     else
       destination = %w[inc dec].include?(group[0].value) ? default_incrementor : default_destination
@@ -119,7 +119,7 @@ class Parser
                 :>>
               end
 
-    if %i[<< >>].include? (command)
+    if %i[<< >>].include? command
       if group[2]
         expect_type(group[2], :number, :address, :register)
         step = group[2]
@@ -136,7 +136,7 @@ class Parser
       expect_type(group[2], :register)
       destination = group[2]
     else
-      destination = %w[left rght].include?(group[0].value) ? default_shift : default_destination
+      destination = default_destination
     end
 
     instructions << Instruction.new(command, source, destination)
@@ -155,11 +155,13 @@ class Parser
 
 
     case command
-    when 'pos', 'neg'
+    when 'pos', 'neg', 'zero'
       check_component_range(group, (2..2))
 
       expect_type(group[1], :number)
       offset = group[1]
+
+      raise "Branch offset cannot be zero \n#{group.join("\n")}" if offset.value.to_i.zero?
 
       instructions << Instruction.new(command, offset, BLANK_TOKEN)
     when 'jump'
@@ -283,6 +285,13 @@ class Parser
     when 'halt'
       check_component_range(group, 1..1)
       instructions << Instruction.new('halt', BLANK_TOKEN, BLANK_TOKEN)
+    when 'pic'
+      check_component_range(group, 2..2)
+      expect_type(group[1], :number)
+      expect_subtype(group[1], :natural)
+
+      image = group[1]
+      instructions << Instruction.new('pic', image, BLANK_TOKEN)
     end
   end
 

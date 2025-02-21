@@ -11,12 +11,11 @@ class Symbolizer
   end
 
   def process
-    enter_subroutines
+    make_entries
     resolve_calls
-    enter_variables
   end
 
-  def enter_subroutines
+  def make_entries
     offset = 0
     remove = []
 
@@ -25,6 +24,20 @@ class Symbolizer
         symbol_table[instruction.direct_object.value] = place - offset
         offset += 1
         remove << instruction
+      elsif instruction.verb == 'name'
+        offset += 1
+
+        name = instruction.indirect_object.value
+        address = "$#{instruction.direct_object.value}"
+
+        raise "Name Taken: \n#{name.upcase} => #{symbol_table[name]}" if symbol_table[name]
+        raise "Cannot alias: #{symbol_table.key(address)}. \n#{instruction}" if instruction.direct_object.value < 10
+        raise "Address #{address} can only have one label. \n#{instruction}" if symbol_table.key(address)
+
+        # The Direct Address sign can be inserted here because the declaration must made with a direct address
+        symbol_table[name] = address
+        
+        remove << instruction
       end
     end
 
@@ -32,32 +45,14 @@ class Symbolizer
   end
 
   def resolve_calls
-    instructions.each do |instruction|
+    instructions.each_with_index do |instruction, place|
       next unless %w[jump jgt jge jeq jle jlt call].include? instruction.verb
       
       instruction.direct_object.value = symbol_table[instruction.direct_object.value]
+
+      if instruction.verb == 'call'
+        instruction.indirect_object = Tokenizer::Token.new(:number, :natural, place)
+      end
     end
-  end
-
-  def enter_variables
-    remove = []
-
-    instructions.each_with_index do |instruction, place|
-      next unless instruction.verb == 'name'
-
-      name = instruction.indirect_object.value
-      address = "$#{instruction.direct_object.value}"
-
-      raise "Name Taken: \n#{name.upcase} => #{symbol_table[name]}" if symbol_table[name]
-      raise "Cannot alias: #{symbol_table.key(address)}. \n#{instruction}" if instruction.direct_object.value < 10
-      raise "Address #{address} can only have one label. \n#{instruction}" if symbol_table.key(address)
-
-      # The Direct Address sign can be inserted here because the declaration must made with a direct address
-      symbol_table[name] = address
-      
-      remove << instruction
-    end
-
-    instructions.reject! { |instruction| remove.include? instruction }
   end
 end

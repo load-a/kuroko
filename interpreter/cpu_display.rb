@@ -42,6 +42,7 @@ module CPUDisplay
   def view_ram(address_base = :decimal, value_base = :decimal)
     formats = {
       binary: '%08b',
+      octal: '%03o',
       decimal: '%03i',
       hex: '%02x'
     }
@@ -69,7 +70,7 @@ module CPUDisplay
     address_format = formats.fetch(address_base, '%03i')
     value_format = formats.fetch(value_base, '%03i')
     
-    puts "* RAM *"
+    puts "* RAM *", "Address: #{formats.key(address_format)}, Values: #{formats.key(value_format)}"
 
     ram.each_with_index do |value, index|
       text = Rainbow(value_format % (value & 0xFF))

@@ -1,33 +1,29 @@
-TEXT "Please enter your name: " $10		; Sets the prompt text
+NAME $10 PROMPT							; Creates a label for address $10
+TEXT "Please enter your name: " $PROMPT	; Assigns text to PROMPT address
 
-MOVE 10 I 								; Sets up the input parameter
-MOVE 0 J								; Clears the output parameter
-CALL :CHAR-COUNT 						; Counts the number of characters in the prompt
+MOVE +10 I 								; Sets up the input parameter for SET_POINTER (see below)
+CALL :SET_POINTER 						; Counts the number of characters in the prompt
 
-MOVE I J 								; Adds I (the address pointer) to the number of characters in the last string
-PUSH J									; Saves this address onto the stack
-TEXT "HELLO, " @6						; Greeting gets put at new address
+PUSH I									; Saves the address pointer to the stack for easier recall later
+TEXT "HELLO, " @I						; Greeting gets put at this address
+CALL :SET_POINTER 						; J holds the character count for this too
 
-MOVE J I								; Puts this address into I
-MOVE 0 J								; Clears J for the function
-CALL :CHAR-COUNT 						; J holds the character count for this too
-
-MOVE I J								; Adds the character count to the string address pointer
-
-OUT $10									; Displays Output prompt
-IN @6									; Receives the user's name
+OUT $PROMPT								; Prompts user for their name
+IN @I									; Receives the user's name
 
 POP A									; Retrieve the saved greeting address
-OUT @0									; Output the greeting
-OUT @6									; Output the user's name
-HALT									; This is required to end execution before it falls into any subroutines
+OUT @A									; Output the greeting
+OUT @I									; Output the user's name
 
-; This routine uses I as an input parameter and J as the output parameter
-CHAR-COUNT:
-	COMP 0 @5			; Compare the current character (value referenced by I) with zero (null)
-	ZERO 4 				; Go to Return if null character
+PIC 0b11001000							; Outputs RAM view (with Hex addresses and Binary values)
+HALT									; Ends execution before it falls into the SET_POINTER subroutine
+
+; This routine sets the I register to the next available space in memory to start a string.
+; You could say the I register is its parameter, since it must be set to the start of the previous string.
+SET_POINTER:
+	COMP 0 @I			; Compare the current character (value referenced by I) with zero (null)
+	ZERO 3 				; Go to Return if null character
 	INC I				; Otherwise, Increment address
-	INC J				; and increment character count
-	JUMP :CHAR-COUNT 	; Loop
+	JUMP :SET_POINTER 	; Loop
 	INC I 				; Sets the pointer to one after the last checked address before returning
 	RTRN
