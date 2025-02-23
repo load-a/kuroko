@@ -219,7 +219,7 @@ class Parser
       expect_type(group[1], :register)
       register = group[1]
 
-      expect_type(group[2], :address, :number, :variable)
+      expect_type(group[2], :address, :number, :variable, :register)
       data = group[2]
 
       instructions << Instruction.new(command, register, data)

@@ -1,0 +1,23 @@
+; Create reference address
+SETUP:
+  MOVE 1 $11
+  MOVE 1 $12
+  LOAD H 12   ; H will be the address pointer
+  LOAD A 0    ; A and B will be the primary operands
+  LOAD B 1
+
+NEXT:
+  SAVE B C    ; C holds B's previous value
+  ADD  A B
+  SAVE B @H
+  INC  H
+  SWAP A C
+  PIC  168
+  COMP L 10   ; L holds the Limit Counter
+  POS  3
+    INC $L
+    JUMP :NEXT
+  JUMP :END
+
+END:
+  HALT

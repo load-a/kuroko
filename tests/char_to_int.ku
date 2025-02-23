@@ -1,0 +1,25 @@
+SETUP:
+  NAME $10 PROMPT
+  TEXT "Please enter a number: " $PROMPT
+  NAME $34 INPUT
+  MOVE 34 H
+
+ASK_FOR_INPUT:
+  OUT $PROMPT
+  IN $INPUT
+
+CONVERT:
+  COMP @H 0
+  ZERO 7 ; Break if equal
+    LOAD A @H
+    LOAD B 48
+    SUB A B
+    SAVE B @H
+    INC H
+    JUMP :CONVERT
+  JUMP :END
+
+END:
+  PIC  0xA8
+  HALT
+

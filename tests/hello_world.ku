@@ -1,0 +1,3 @@
+TEXT "Hello, world!" $0o12
+OUT $10
+PIC 0b01011000
