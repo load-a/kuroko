@@ -41,6 +41,8 @@
   Adds `step` to `destination` (default is 1).
 - **DEC destination, [step: 1]**  
   Subtracts `step` from `destination` (default is 1).
+- **RAND destination**
+  Loads a random number between 0 and 255 into `destination`.
 
 ### **Logic & Bitwise**
 "Source" refers to a *Number, Variable, Register, or Address*.  
@@ -126,10 +128,17 @@
   Displays characters from `destination` up to `limit` or until a null character.
 - **IN destination, limit**  
   Reads standard input into memory starting at `destination`, stopping at `limit`.
+- **NIN destination**
+  Converts standard input into integer and stores it at `destination`.
+- **NOUT destination**  
+  Prints number from `destination`.
+
 
 ### **Other**
 - **NAME address label**  
   Assigns a label to the given address, effectively creating a variable.
+- **HALT**
+- **LIST**
 - **PIC image**  
   Displays the CPU status at the time the instruction is encountered. The "Image" operand is one byte that defines what gets displayed.
 

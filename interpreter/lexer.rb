@@ -2,12 +2,16 @@
 
 # Breaks source code into lexical units for the tokenizer
 class Lexer
+  LIST_ASSIGNMENT_PATTERN = /#{LABEL_PATTERN}\s?=\s?/
+  ELEMENT_PATTERN = /#{LIST_ASSIGNMENT_PATTERN}?(#{NUMBER_PATTERN}|#{STRING_PATTERN})/
   COARSE_PATTERNS = {
     comment: /;.*/,
+    header: /# (DATA|LOGIC)/i,
+    list: /\[\s*#{ELEMENT_PATTERN}\s*(,\s*#{ELEMENT_PATTERN}\s*)*\]/,
     number: NUMBER_PATTERN,
     label: /#{LABEL_PATTERN}:|:#{LABEL_PATTERN}|#{LABEL_PATTERN}/,
     location: /[@$](#{LABEL_PATTERN}|#{NUMBER_PATTERN})|[@$]?#{REGISTER_PATTERN}/,
-    string: /"(?:[^"\\]|\\.)*"/,
+    string: STRING_PATTERN,
     whitespace: /\s+|,/
   }
 
@@ -38,6 +42,25 @@ class Lexer
 
       units.reject! { |unit| unit.type == :whitespace }
       units << Unit.new(:end_of_file, '')
+      lex_lists
+  end
+
+  def lex_lists
+    units.each do |unit|
+      next unit unless unit.type == :list
+
+      unit.value = unit.value[1..-2].split(',').map { |element| element.strip }
+
+      unit.value.map! do |element|
+        if element =~ LIST_ASSIGNMENT_PATTERN
+          Unit.new(:element, element)
+        elsif element =~ STRING_PATTERN
+          Unit.new(:string, element)
+        else
+          Unit.new(:number, element)
+        end
+      end    
+    end
   end
 
   def show_units

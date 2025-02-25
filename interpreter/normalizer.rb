@@ -35,6 +35,9 @@ class Normalizer
         type = token.type
         token.value = token.value.downcase.sub(/[@$]/, '')
         log << normalized_report(type.to_s.capitalize, index, token)
+      when :header
+        token.value = token.value.downcase.sub('# ', '')
+        log << normalized_report('Header', index, token)
       end
     end
 

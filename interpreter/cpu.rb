@@ -5,14 +5,21 @@ require_relative 'cpu_display'
 class CPU
   include CPUDisplay
 
+  USER_PROMPT = '[User] << '
+  KURO_PROMPT = '[Kuro] >> '
+
   attr_accessor :rom, :ram, :symbol_table
 
-  def initialize(rom, symbol_table)
+  def initialize(rom, symbol_table, writes)
     self.rom = rom
     self.symbol_table = symbol_table
     self.ram = Array.new(256, 0)
 
     self.stack_pointer = 255
+
+    writes.each do |address, value|
+      ram[ram_address(address)] = value
+    end
   end
 
   REGISTERS.each do |name, address|
@@ -47,6 +54,10 @@ class CPU
       print_text
     when 'in'
       receive_text
+    when 'nin'
+      receive_number
+    when 'nout'
+      print_number
     when 'pic'
       take_picture
     when 'comp'
@@ -93,6 +104,9 @@ class CPU
       destination = ram_address(instruction.direct_object)
 
       result = ~operand
+    elsif instruction.verb == :rand
+      destination = ram_address(instruction.direct_object)
+      return ram[destination] = rand(0..255)
     else 
       raise "Unaccounted for Verb Symbol Detected #{instruction.verb} \n#{instruction.to_s}"
     end
@@ -202,6 +216,8 @@ class CPU
     char_count = 0
     offset = 0
 
+    print KURO_PROMPT
+
     loop do
       break if ram[position + offset].zero? || char_count == char_limit
 
@@ -220,12 +236,34 @@ class CPU
     offset = 0
 
     ARGV.clear
-    print ">> "
+    print USER_PROMPT
 
     chars = gets.chomp.bytes[0..limit]
     chars.each_with_index do |byte, offset|
       ram[destination + offset] = byte
     end
+  end
+
+  def receive_number
+    destination = ram_address(instruction.direct_object)
+
+    ARGV.clear
+    print USER_PROMPT
+
+    number = gets.chomp.to_i
+
+    if number.negative?
+      number = number.clamp(-128, 127)
+    else
+      number %= 256
+    end
+
+    ram[destination] = number
+  end
+
+  def print_number
+    position = ram_address(instruction.direct_object)
+    puts"#{KURO_PROMPT}#{ram[position]}"
   end
 
   def take_picture
@@ -279,6 +317,8 @@ class CPU
 
   # Returns the RAM Address of a token
   def ram_address(token)
+    return token.sub(/[@$]/, '').to_i if token.is_a? String
+    
     case token.type
     when :register, :variable
       address = lookup(token.value)

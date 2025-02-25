@@ -3,14 +3,14 @@
 # Converts Lexical Units into tokens for the Normalizer and Parser
 class Tokenizer
   COMMANDS = {
-    arithmetic: %w[add sub mul mult div rem mod inc dec],
+    arithmetic: %w[add sub mul mult div rem mod inc dec rand],
     logic: %w[and or not xor left rght],
     branch: %w[comp zero pos neg jump jeq jlt jgt jge jle],
     subroutine: %w[call rtrn],
     stack: %w[push pop dump rstr],
     memory: %w[move copy load save swap],
-    io: %w[text out in],
-    other: %w[name var halt pic]
+    io: %w[text out in nin nout],
+    other: %w[name var halt pic list]
   }
 
   class Token
@@ -37,18 +37,32 @@ class Tokenizer
     units.each do |unit|
       next if unit.type == :comment
 
-      tokens << case unit.type
-                when :string
-                  Token.new(:string, :literal, unit.value)
-                when :number
-                  disambiguate_number(unit)
-                when :label
-                  disambiguate_label(unit)
-                when :location
-                  disambiguate_location(unit)
-                when :end_of_file
-                  Token.new(:end_of_file, :final, '')
-                end
+      if unit.type == :list
+        unit.value.map! { |element| generate_token(element) }
+      end
+
+      tokens << generate_token(unit)
+    end
+  end
+
+  def generate_token(unit)
+    case unit.type
+    when :string
+      Token.new(:string, :literal, unit.value)
+    when :number
+      disambiguate_number(unit)
+    when :label
+      disambiguate_label(unit)
+    when :location
+      disambiguate_location(unit)
+    when :header
+      Token.new(:header, unit.value.downcase.sub('# ', '').to_sym, unit.value)
+    when :list
+      Token.new(:data, :list, unit.value)
+    when :element
+      Token.new(:element, :assignment, unit.value)
+    when :end_of_file
+      Token.new(:end_of_file, :final, '')
     end
   end
 

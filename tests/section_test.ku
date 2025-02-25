@@ -1,0 +1,7 @@
+;# DATA
+# DATA
+NAME $15 HAL
+TEXT "HELLO" $16
+list $24 ["a", "b", "c", "d"]
+# LOGIC
+LOAD A 15

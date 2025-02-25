@@ -1,0 +1,54 @@
+SET_TEXT:
+  TEXT "Guess a number between 1 and 100. " $10
+  TEXT "Too high." $45
+  TEXT "Too low." $55
+  TEXT "You win!" $64
+  TEXT "You lose. The number was: " $73
+SET_VARIABLES:
+  NAME $104 NUMBER
+  CALL :SET_NUMBER
+  NAME $105 CHANCES
+  MOVE 5 $CHANCES
+  NAME $106 GUESS
+
+MAIN: 
+  CALL :GET_GUESS
+  CALL :CHECK
+  JUMP :MAIN
+
+GET_GUESS:
+  OUT $10
+  NIN $GUESS
+  RTRN
+CHECK:
+  COMP $GUESS $NUMBER
+  ZERO 6
+    CALL :GIVE_HINT
+    DEC  $CHANCES
+    LOAD A 0
+    JLE  :LOST $CHANCES
+    RTRN
+  CALL :WON
+GIVE_HINT: 
+  POS 3       ; If the comparison was positive (Guess > Number) it jumps to "OUT $45"
+    OUT $55   ; Else, this line gets executed then we return from subroutine
+    RTRN
+  OUT $45
+  RTRN
+LOST:
+  OUT  $73
+  NOUT $NUMBER
+  JUMP :END
+WON: 
+  OUT $64
+  JUMP :END
+SET_NUMBER:
+  RAND $NUMBER
+  LOAD A 100
+  MOD  $NUMBER A
+  INC  A
+  SAVE A $NUMBER
+  RTRN
+END:
+  ; PIC 0xA8
+  HALT

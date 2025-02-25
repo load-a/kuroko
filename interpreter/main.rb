@@ -2,6 +2,7 @@
 
 NUMBER_PATTERN = /[+\-]?(0b[01]+|0x[0-9a-f]+|0o[0-7]+|[0-9]+)/i
 LABEL_PATTERN = /[_a-z][_a-z0-9]+/i
+STRING_PATTERN = /"(?:[^"\\]|\\.)*"/
 REGISTER_PATTERN = /\b[abcdhlij]\b/i
 REGISTERS = {
       a_register: '$0',
@@ -28,35 +29,39 @@ require_relative 'parser'
 require_relative 'symbolizer'
 require_relative 'cpu'
 
-# puts '--LEXER--'
+puts '--LEXER--'
 source = File.read ARGV[0]
 lexer = Lexer.new(source)
 lexer.process
-# lexer.show_units
+lexer.show_units
 
-# puts '--TOKENIZER--'
+puts '--TOKENIZER--'
 tokenizer = Tokenizer.new(lexer.units)
 tokenizer.tokenize
-# tokenizer.show_tokens
+tokenizer.show_tokens
 
-# puts '--NORMALIZER--'
+puts '--NORMALIZER--'
 norm = Normalizer.new(tokenizer.tokens)
 norm.normalize
-# puts norm.log
+puts norm.log
 
-# puts '--PARSER--'
+puts '--PARSER--'
 par = Parser.new(tokenizer.tokens)
 par.parse
-# par.show_instructions
+par.show_instructions
 
-# puts '--SYMBOLIZER--'
+puts '--SYMBOLIZER--'
 sym = Symbolizer.new(par.instructions)
 sym.process
-# display_hash sym.symbol_table
-# par.show_instructions
+puts '- - SYMBOL TABLE - -'
+display_hash sym.symbol_table
+puts '- - WRITES - -'
+display_hash sym.writes
+puts '- - REVISIONS - -'
+par.show_instructions
 
-# puts '--CENTERAL PROCESSING UNIT--'
-cpu = CPU.new(par.instructions, sym.symbol_table)
+puts '--CENTERAL PROCESSING UNIT--'
+cpu = CPU.new(par.instructions, sym.symbol_table, sym.writes)
 cpu.run
-# puts '- - Input/Output - -'
-# cpu.display(:dec, :dec)
+puts '- - Input/Output - -'
+cpu.display(:dec, :dec)

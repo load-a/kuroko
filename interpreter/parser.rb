@@ -18,12 +18,13 @@ class Parser
     end
   end
 
-  attr_accessor :tokens, :instructions, :partitions
+  attr_accessor :tokens, :instructions, :partitions, :mode
 
   def initialize(tokens)
     self.tokens = tokens
     self.partitions = []
     self.instructions = []
+    self.mode = :logic
   end
 
   def partition_tokens
@@ -31,7 +32,8 @@ class Parser
 
     tokens.each do |token|
       case token.type
-      when :command, :subroutine, :end_of_file
+      when :command, :subroutine, :end_of_file, :header
+        self.mode = :data if token.subtype == :data
         next group << token if token.subtype == :call
         partitions << group.dup unless group.empty?
         group.clear
@@ -46,11 +48,57 @@ class Parser
 
   def parse
     partition_tokens
-    parse_groups
+    parse_data_section if mode == :data
+    parse_logic_section
   end
 
-  def parse_groups
+  def parse_data_section
+    rejects = []
+    expect_type(partitions[0][0], :header)
+    expect_subtype(partitions[0][0], :data)
+    partitions.delete_at(0)
+
     partitions.each do |group|
+      break if group[0].type == :header
+
+      expect_type(group[0], :list, :command)
+
+      verb = group[0].value
+
+      case verb
+      when 'text'
+        parse_io(group)
+      when 'list'
+        expect_type(group[1], :address)
+        expect_subtype(group[1], :direct)
+
+        expect_subtype(group[2], :list)
+
+        instructions << Instruction.new(:list, group[1], group[2])
+      when 'name'
+        parse_other(group)
+      else 
+        raise "Cannot use in Data Section: #{group.map(&:to_s)}"
+      end
+
+      rejects << group
+    end
+
+    partitions.reject! { |group| rejects.include? group }
+  end
+
+  def parse_logic_section
+    if partitions[0][0] == :header
+      expect_type(partitions[0][0], :header)
+      expect_subtype(partitions[0][0], :logic)
+      partitions.delete_at(0)
+    end
+    parse_logical_groups
+  end
+
+  def parse_logical_groups
+    partitions.each do |group|
+      next instructions << Instruction.new('header', group[0], BLANK_TOKEN) if group[0].type == :header 
       next instructions << Instruction.new('func', group[0], BLANK_TOKEN) if group[0].type == :subroutine 
       next instructions << Instruction.new(:end, BLANK_TOKEN, BLANK_TOKEN) if group[0].type == :end_of_file 
 
@@ -83,7 +131,13 @@ class Parser
                 :inc
               when 'dec'
                 :dec
+              when 'rand'
+                :rand
               end
+    if command == :rand
+      expect_type(group[1], :variable, :register, :address)
+      return instructions << Instruction.new(command, source, BLANK_TOKEN)
+    end
 
     if group.length == 3
       expect_type(group[2], :variable, :register, :address)
@@ -251,6 +305,12 @@ class Parser
       end
 
       instructions << Instruction.new(command, location, limit)
+    when 'nin', 'nout'
+      check_component_range(group, (2..2))
+      expect_type(group[1], :variable, :register, :address)
+      location = group[1]
+
+      instructions << Instruction.new(command, location, BLANK_TOKEN)
     end
   end
 
@@ -292,6 +352,18 @@ class Parser
 
       image = group[1]
       instructions << Instruction.new('pic', image, BLANK_TOKEN)
+    when 'list'
+      check_component_range(group, 3..3)
+
+      expect_type(group[1], :address)
+      expect_subtype(group[1], :direct)
+      address = group[1]
+
+      expect_type(group[2], :data)
+      expect_subtype(group[2], :list)
+      label = group[2]
+
+      instructions << Instruction.new(group[0].value, address, label)
     end
   end
 
