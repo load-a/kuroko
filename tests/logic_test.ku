@@ -30,6 +30,8 @@ LEFT C 5
 OR   1 C
 SAVE C $22
 
+PIC 0xA8
+
 ; Expected Output
 ; * RAM *
 ; 00. 6f 6f 21 76 79 00 00 19 |  o o ! v y . . . 

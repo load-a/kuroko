@@ -48,20 +48,6 @@ class Normalizer
     end
   end
 
-  def convert_to_integer(numeric)
-    return numeric if numeric.is_a? Integer
-
-    if  numeric =~ /[+\-]?0b/i
-      numeric.to_i(2)
-    elsif  numeric =~ /[+\-]?0x/i
-      numeric.to_i(16)
-    elsif numeric =~ /[+\-]?0o/i
-      numeric.to_i(8)
-    else
-      numeric.to_i
-    end
-  end
-
   def normalized_report(attribute, index, token)
     '%04i: %s -> %s' % [index, attribute.ljust(12), token.to_s.sub('#<struct Tokenizer::Token ', '<')]
   end

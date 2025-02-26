@@ -1,29 +1,12 @@
-NAME $10 PROMPT                         ; Creates a label for address $10
-TEXT "Please enter your name: " $PROMPT ; Assigns text to PROMPT address
+#DATA
+; Declares variables and writes text into RAM
+LIST $10 [PROMPT = "Please enter your name: ", GREETING = "Hello, ", USER = 0]
 
-MOVE +10 I                              ; Sets up the input parameter for SET_POINTER (see below)
-CALL :SET_POINTER                       ; Counts the number of characters in the prompt
+#LOGIC
+OUT $PROMPT       ; Prints the Kuro Prompt ("[KURO] >> ") followed by the text, then start a newline
+IN  $USER         ; Prints the User Prompt ("[USER] << ") and receives text
 
-PUSH I                                  ; Saves the address pointer to the stack for easier recall later
-TEXT "HELLO, " @I                       ; Greeting gets put at this address
-CALL :SET_POINTER                       ; J holds the character count for this too
-
-OUT $PROMPT                             ; Prompts user for their name
-IN @I                                   ; Receives the user's name
-
-POP A                                   ; Retrieve the saved greeting address
-OUT @A                                  ; Output the greeting
-OUT @I                                  ; Output the user's name
-
-PIC 0b11001000                          ; Outputs RAM view (with Hex addresses and Binary values)
-HALT                                    ; Ends execution before it falls into the SET_POINTER subroutine
-
-; This routine sets the I register to the next available space in memory to start a string.
-; You could say the I register is its parameter, since it must be set to the start of the previous string.
-SET_POINTER:
-    COMP 0 @I           ; Compare the current character (value referenced by I) with zero (null)
-    ZERO 3              ; Go to Return if null character
-    INC I               ; Otherwise, Increment address
-    JUMP :SET_POINTER   ; Loop
-    INC I               ; Sets the pointer to one after the last checked address before returning
-    RTRN
+POST              ; Just prints the prompt with no additional text or newline
+  PRNT $GREETING  ; Appends $GREETING to the current line
+  PRNT $USER      ; Appends $USER name to the current line
+  OUT "!"

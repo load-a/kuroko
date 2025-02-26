@@ -1,7 +1,10 @@
 ;# DATA
 # DATA
+TEXT "abcdefgh" $0
 NAME $15 HAL
 TEXT "HELLO" $16
-list $24 ["a", "b", "c", "d"]
+list $24 ["a", "b", "c", "d", ITEM = "world", OBJECT = "YOU"]
+
 # LOGIC
 LOAD A 15
+PIC 0xA8

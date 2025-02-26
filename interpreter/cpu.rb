@@ -50,14 +50,18 @@ class CPU
       perform_memory_operation
     when 'text'
       store_text
-    when 'out'
+    when 'out', 'prnt'
       print_text
     when 'in'
       receive_text
     when 'nin'
       receive_number
-    when 'nout'
+    when 'nout', 'tlly'
       print_number
+    when 'nwln'
+      puts
+    when 'post'
+      print KURO_PROMPT
     when 'pic'
       take_picture
     when 'comp'
@@ -106,14 +110,13 @@ class CPU
       result = ~operand
     elsif instruction.verb == :rand
       destination = ram_address(instruction.direct_object)
-      return ram[destination] = rand(0..255)
+      return write_to_ram(destination, rand(0..255))
     else 
       raise "Unaccounted for Verb Symbol Detected #{instruction.verb} \n#{instruction.to_s}"
     end
 
     set_flags(result)
-
-    ram[destination] = result
+    write_to_ram(destination, result)
   end
 
   def perform_memory_operation
@@ -124,10 +127,11 @@ class CPU
 
     case instruction.verb
     when 'move', 'save'
-      ram[destination] = source
+      write_to_ram(destination, source)
     when 'load'
-      ram[target] = ram_value(instruction.indirect_object)
+      write_to_ram(target, ram_value(instruction.indirect_object))
     when 'swap'
+      raise "Cannot write to PC, SP or FLAG Registers " if [target, destination].any? { |item| item.between?(7, 9) }
       ram[target], ram[destination] = ram[destination], ram[target]
     end
   end
@@ -160,7 +164,7 @@ class CPU
 
   def pop_stack(location)
     self.stack_pointer += 1
-    ram[location] = ram[stack_pointer]
+    write_to_ram(location, ram[stack_pointer])
   end
 
   def perform_subroutine_operation
@@ -201,22 +205,32 @@ class CPU
   end
 
   def store_text
-    string = instruction.direct_object.value[1..-2]
-    position = ram_address(instruction.indirect_object)
+    string = instruction.indirect_object.value[1..-2]
+    position = ram_address(instruction.direct_object)
 
     string.each_byte do |byte|
-      ram[position] = byte
+      write_to_ram(position, byte)
       position += 1
     end
+
+    write_to_ram(position, 0)
   end
 
   def print_text
-    position = ram_address(instruction.direct_object)
     char_limit = ram_value(instruction.indirect_object)
+
+    if instruction.direct_object.type == :string
+      return puts instruction.direct_object.value[1..char_limit] if instruction.verb == 'out'
+
+      return print instruction.direct_object.value[1..char_limit]
+    end
+
+    position = ram_address(instruction.direct_object)
     char_count = 0
     offset = 0
 
-    print KURO_PROMPT
+    print KURO_PROMPT unless instruction.verb == 'prnt'
+    return if instruction.verb == 'post'
 
     loop do
       break if ram[position + offset].zero? || char_count == char_limit
@@ -227,7 +241,7 @@ class CPU
       offset += 1
     end
 
-    puts 
+    puts if instruction.verb == 'out'
   end
 
   def receive_text
@@ -240,7 +254,7 @@ class CPU
 
     chars = gets.chomp.bytes[0..limit]
     chars.each_with_index do |byte, offset|
-      ram[destination + offset] = byte
+      write_to_ram(destination + offset, byte)
     end
   end
 
@@ -258,12 +272,14 @@ class CPU
       number %= 256
     end
 
-    ram[destination] = number
+    write_to_ram(destination, number)
   end
 
   def print_number
     position = ram_address(instruction.direct_object)
-    puts"#{KURO_PROMPT}#{ram[position]}"
+    puts KURO_PROMPT unless instruction.verb == 'tlly'
+    print ram[position]
+    puts if instruction.verb == 'nout'
   end
 
   def take_picture
@@ -350,5 +366,11 @@ class CPU
     else
       raise "Token's RAM value not accounted for: #{token}"
     end
+  end
+
+  def write_to_ram(address, value)
+    raise "Cannot write to PC, SP or FLAG Registers: \n$#{address} =/= #{value} \n#{instruction}" if address.between?(7, 9)
+    raise "Cannot write into Stack, \n$#{address} =/= #{value} \n#{instruction}" if address >= 240
+    ram[address] = value
   end
 end

@@ -9,7 +9,7 @@ class Tokenizer
     subroutine: %w[call rtrn],
     stack: %w[push pop dump rstr],
     memory: %w[move copy load save swap],
-    io: %w[text out in nin nout],
+    io: %w[text out in nin nout nwln prnt tlly post],
     other: %w[name var halt pic list]
   }
 
@@ -56,11 +56,13 @@ class Tokenizer
     when :location
       disambiguate_location(unit)
     when :header
-      Token.new(:header, unit.value.downcase.sub('# ', '').to_sym, unit.value)
+      Token.new(:header, unit.value.downcase.sub('#', '').strip.to_sym, unit.value)
     when :list
       Token.new(:data, :list, unit.value)
+    when :bracket
+      unit.value == '[' ? Token.new(:bracket, :open, unit.value) : Token.new(:bracket, :close, unit.value)
     when :element
-      Token.new(:element, :assignment, unit.value)
+      Token.new(:element, :list, unit.value)
     when :end_of_file
       Token.new(:end_of_file, :final, '')
     end

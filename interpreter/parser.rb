@@ -34,7 +34,9 @@ class Parser
       case token.type
       when :command, :subroutine, :end_of_file, :header
         self.mode = :data if token.subtype == :data
+
         next group << token if token.subtype == :call
+
         partitions << group.dup unless group.empty?
         group.clear
         group << token
@@ -61,7 +63,7 @@ class Parser
     partitions.each do |group|
       break if group[0].type == :header
 
-      expect_type(group[0], :list, :command)
+      expect_type(group[0], :list, :command, :end_of_file)
 
       verb = group[0].value
 
@@ -69,22 +71,34 @@ class Parser
       when 'text'
         parse_io(group)
       when 'list'
-        expect_type(group[1], :address)
-        expect_subtype(group[1], :direct)
-
-        expect_subtype(group[2], :list)
-
-        instructions << Instruction.new(:list, group[1], group[2])
+        parse_list(group)
       when 'name'
         parse_other(group)
       else 
-        raise "Cannot use in Data Section: #{group.map(&:to_s)}"
+        exit if group[0].type == :end_of_file
+        raise "Cannot use in Data Section: #{group.map(&:to_s)}" 
       end
 
       rejects << group
     end
 
     partitions.reject! { |group| rejects.include? group }
+  end
+
+  def parse_list(group)
+    expect_type(group[1], :address)
+    expect_subtype(group[1], :direct)
+
+    expect_type(group[2], :bracket)
+    expect_subtype(group[2], :open)
+
+    address = group[1]
+    list = group[3...-1]
+
+    expect_type(group.last, :bracket)
+    expect_subtype(group.last, :close)
+
+    instructions << Instruction.new('list', address, Tokenizer::Token.new(:list, :content, list))
   end
 
   def parse_logic_section
@@ -134,13 +148,17 @@ class Parser
               when 'rand'
                 :rand
               end
-    if command == :rand
+    if command == :rand 
       expect_type(group[1], :variable, :register, :address)
       return instructions << Instruction.new(command, source, BLANK_TOKEN)
     end
 
     if group.length == 3
-      expect_type(group[2], :variable, :register, :address)
+      if %w[inc dec].include?(group[0].value)
+        expect_type(group[2], :variable, :register, :address, :number)
+      else
+        expect_type(group[2], :variable, :register, :address)
+      end
       destination = group[2]
     else
       destination = %w[inc dec].include?(group[0].value) ? default_incrementor : default_destination
@@ -285,32 +303,37 @@ class Parser
 
     case command
     when 'text'
-      expect_type(group[1], :string)
-      text = group[1]
+      expect_type(group[2], :string)
+      text = group[2]
 
-      expect_type(group[2], :address, :register, :variable)
-      location = group[2]
-
-      instructions << Instruction.new(command, text, location)
-    when 'in', 'out'
-      check_component_range(group, (2..3))
       expect_type(group[1], :address, :register, :variable)
       location = group[1]
 
+      instructions << Instruction.new(command, location, text)
+    when 'in', 'out', 'prnt', 'tlly'
+      check_component_range(group, (2..3))
+      expect_type(group[1], :address, :register, :variable, :string)
+      location = group[1]
+
       if group.length == 2
-        limit = Tokenizer::Token.new(:number, :integer, -1)
+        char_limit = location.type == :string ? -2 : -1
+        limit = Tokenizer::Token.new(:number, :integer, char_limit)
       else
         expect_type(group[2], :number, :register, :variable, :address)
+        group[2].value = group[2].value.clamp(-2, 256)
         limit = group[2]
       end
 
       instructions << Instruction.new(command, location, limit)
-    when 'nin', 'nout'
+    when 'nin', 'nout', 'ncat'
       check_component_range(group, (2..2))
       expect_type(group[1], :variable, :register, :address)
       location = group[1]
 
       instructions << Instruction.new(command, location, BLANK_TOKEN)
+    when 'nwln', 'post'
+      check_component_range(group, 1..1)
+      instructions << Instruction.new(command, BLANK_TOKEN, BLANK_TOKEN)
     end
   end
 
@@ -331,6 +354,8 @@ class Parser
   def parse_other(group)
     case group[0].value
     when 'var', 'name'
+      raise "Cannot use NAME or VAR in Logic Section" if mode == :logic
+
       check_component_range(group, 3..3)
 
       expect_type(group[1], :address)
@@ -353,6 +378,8 @@ class Parser
       image = group[1]
       instructions << Instruction.new('pic', image, BLANK_TOKEN)
     when 'list'
+      raise "Cannot use LIST in Logic Section" if mode == :logic
+
       check_component_range(group, 3..3)
 
       expect_type(group[1], :address)
@@ -387,6 +414,8 @@ class Parser
 
   def show_instructions
     instructions.each_with_index do |instruction, index|
+      instruction = instruction.map(&:to_s) if instruction.verb == :list
+
       puts '%04i. %s' % [index, instruction.to_s(45)]
     end
   end

@@ -13,7 +13,7 @@
 - The syntax for operations follows a `VERB DIRECT-OBJECT INDIRECT-OBJECT` structure (e.g., "DO THIS with/using/into THIS").
 - Math and logical operations use the structure `OPERAND operation OPERATOR`. For example, `ADD 1 2` means `1 + 2` and `DIV 10 5` means `10 / 5`.
 - The **A Register** is the default second operand. If **A** is the first operand, a second operand must be present (when applicable).
-- Strings are terminated with a Null Character (0x00). The user must manually ensure null separation.
+- Strings are terminated with a Null Character (0x00). This is appended to the string automatically.
 - Optional operands are enclosed in brackets. Default values, if any, are specified.
 - Registers are kept in addresses $0-$10. Users can use addresses $10 onward.
 

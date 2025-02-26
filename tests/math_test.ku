@@ -30,6 +30,7 @@ DEC  J 141
 SAVE J $22
 
 MOVE 33 $23
+PIC 0xA8
 
 ; Expected Output
 ; * RAM *

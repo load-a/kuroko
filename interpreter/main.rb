@@ -2,7 +2,7 @@
 
 NUMBER_PATTERN = /[+\-]?(0b[01]+|0x[0-9a-f]+|0o[0-7]+|[0-9]+)/i
 LABEL_PATTERN = /[_a-z][_a-z0-9]+/i
-STRING_PATTERN = /"(?:[^"\\]|\\.)*"/
+STRING_PATTERN = /"((?:\\.|[^"\\])*)"/
 REGISTER_PATTERN = /\b[abcdhlij]\b/i
 REGISTERS = {
       a_register: '$0',
@@ -17,6 +17,20 @@ REGISTERS = {
       flag_register: '$9'
     }
 
+def convert_to_integer(numeric)
+  return numeric if numeric.is_a? Integer
+
+  if  numeric =~ /[+\-]?0b/i
+    numeric.to_i(2)
+  elsif  numeric =~ /[+\-]?0x/i
+    numeric.to_i(16)
+  elsif numeric =~ /[+\-]?0o/i
+    numeric.to_i(8)
+  else
+    numeric.to_i
+  end
+end
+
 def display_hash(hash)
   count = hash.keys.map {|key| key.to_s.length }.max
   puts hash.map {|key, value| "#{key.to_s.ljust(count)}: #{value}"}
@@ -29,39 +43,39 @@ require_relative 'parser'
 require_relative 'symbolizer'
 require_relative 'cpu'
 
-puts '--LEXER--'
+# puts '--LEXER--'
 source = File.read ARGV[0]
 lexer = Lexer.new(source)
 lexer.process
-lexer.show_units
+# lexer.show_units
 
-puts '--TOKENIZER--'
+# puts '--TOKENIZER--'
 tokenizer = Tokenizer.new(lexer.units)
 tokenizer.tokenize
-tokenizer.show_tokens
+# tokenizer.show_tokens
 
-puts '--NORMALIZER--'
+# puts '--NORMALIZER--'
 norm = Normalizer.new(tokenizer.tokens)
 norm.normalize
-puts norm.log
+# puts norm.log
 
-puts '--PARSER--'
+# puts '--PARSER--'
 par = Parser.new(tokenizer.tokens)
 par.parse
-par.show_instructions
+# par.show_instructions
 
-puts '--SYMBOLIZER--'
+# puts '--SYMBOLIZER--'
 sym = Symbolizer.new(par.instructions)
 sym.process
-puts '- - SYMBOL TABLE - -'
-display_hash sym.symbol_table
-puts '- - WRITES - -'
-display_hash sym.writes
-puts '- - REVISIONS - -'
-par.show_instructions
+# puts '- - SYMBOL TABLE - -'
+# display_hash sym.symbol_table
+# puts '- - WRITES - -'
+# display_hash sym.ram_table
+# puts '- - REVISIONS - -'
+# par.show_instructions
 
-puts '--CENTERAL PROCESSING UNIT--'
-cpu = CPU.new(par.instructions, sym.symbol_table, sym.writes)
+# puts '--CENTERAL PROCESSING UNIT--'
+cpu = CPU.new(par.instructions, sym.symbol_table, sym.ram_table)
 cpu.run
-puts '- - Input/Output - -'
-cpu.display(:dec, :dec)
+# puts '- - Input/Output - -'
+# cpu.display(:dec, :dec)

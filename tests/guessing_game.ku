@@ -1,23 +1,36 @@
-SET_TEXT:
-  TEXT "Guess a number between 1 and 100. " $10
-  TEXT "Too high." $45
-  TEXT "Too low." $55
-  TEXT "You win!" $64
-  TEXT "You lose. The number was: " $73
-SET_VARIABLES:
-  NAME $104 NUMBER
-  CALL :SET_NUMBER
-  NAME $105 CHANCES
-  MOVE 5 $CHANCES
-  NAME $106 GUESS
+# DATA
+LIST $10 [
+  PROMPT = "Guess a number between 1 and 100. ",
+  TOO_HIGH = "Too high.",
+  TOO_LOW = "Too low.",
+  WIN_TEXT = "You win!",
+  LOSE_TEXT = "You lose. The number was "
+]
 
-MAIN: 
+LIST $104 [
+  NUMBER = 0,
+  CHANCES = 0,
+  GUESS = 0
+]
+
+# LOGIC
+SET_VARIABLES:
+  MOVE 5 $CHANCES   ; Sets the number of chances the player gets
+  RAND $NUMBER      ; Rolls a number between 0 and 255
+  LOAD A 100        ; Prepares to restrict the number
+  MOD  $NUMBER A    ; $number % 100 -> A makes it between 0 and 99
+  INC  A            ; Adds 1 to make it between 1 and 100
+  SAVE A $NUMBER    ; Saves the final result into $number
+
+START_GAME:
+  OUT $PROMPT
+
+LOOP: 
   CALL :GET_GUESS
   CALL :CHECK
-  JUMP :MAIN
+  JUMP :LOOP
 
 GET_GUESS:
-  OUT $10
   NIN $GUESS
   RTRN
 CHECK:
@@ -30,25 +43,20 @@ CHECK:
     RTRN
   CALL :WON
 GIVE_HINT: 
-  POS 3       ; If the comparison was positive (Guess > Number) it jumps to "OUT $45"
-    OUT $55   ; Else, this line gets executed then we return from subroutine
+  POS 3             ; If the comparison was positive (Guess > Number) it jumps to "OUT $45"
+    OUT $TOO_LOW    ; Else, this line gets executed then we return from subroutine
     RTRN
-  OUT $45
+  OUT $TOO_HIGH
   RTRN
 LOST:
-  OUT  $73
-  NOUT $NUMBER
+  POST
+    PRNT $LOSE_TEXT
+    TLLY $NUMBER
+    NWLN
   JUMP :END
 WON: 
-  OUT $64
+  OUT  $WIN_TEXT
   JUMP :END
-SET_NUMBER:
-  RAND $NUMBER
-  LOAD A 100
-  MOD  $NUMBER A
-  INC  A
-  SAVE A $NUMBER
-  RTRN
 END:
   ; PIC 0xA8
   HALT

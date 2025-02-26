@@ -3,12 +3,12 @@
 # Creates and manages entries into the Symbol Table. (Modifies its instructions directly)
 class Symbolizer
 
-  attr_accessor :symbol_table, :instructions, :writes
+  attr_accessor :symbol_table, :instructions, :ram_table
 
   def initialize(instructions)
     self.instructions =  instructions
     self.symbol_table = REGISTERS.dup
-    self.writes = {}
+    self.ram_table = {}
   end
 
   def process
@@ -60,7 +60,7 @@ class Symbolizer
 
   def resolve_lists
     instructions.each do |instruction|
-      next unless instruction.verb == :list
+      next unless instruction.verb == 'list'
 
       index = instruction.direct_object.value
 
@@ -70,25 +70,9 @@ class Symbolizer
 
           symbol_table[name.downcase] = "$#{index}"
 
-          if value.include? '"'
-            value[1..-2].each_byte do |byte| 
-              writes["$#{index}"] = byte
-              index += 1 
-            end
-          else
-            writes["$#{index}"] = convert_to_integer(value)
-            index += 1
-          end
+          index = write_to_ram(value, index)
         else
-          if element.value.include? '"'
-            element.value[1..-2].each_byte do |byte| 
-              writes["$#{index}"] = byte
-              index += 1 
-            end
-          else
-            writes["$#{index}"] = convert_to_integer(element.value)
-            index += 1
-          end
+          index = write_to_ram(element.value, index)
         end
       end
     end
@@ -96,17 +80,19 @@ class Symbolizer
     instructions.reject! {|item| item.verb == :list}
   end
 
-  def convert_to_integer(numeric)
-    return numeric if numeric.is_a? Integer
-
-    if  numeric =~ /[+\-]?0b/i
-      numeric.to_i(2)
-    elsif  numeric =~ /[+\-]?0x/i
-      numeric.to_i(16)
-    elsif numeric =~ /[+\-]?0o/i
-      numeric.to_i(8)
+  def write_to_ram(value, index)
+    if value.to_s.include? '"'
+      value[1..-2].each_byte do |byte| 
+        ram_table["$#{index}"] = byte
+        index += 1 
+      end
+      ram_table["$#{index}"] = 0
+      index += 1
     else
-      numeric.to_i
+      ram_table["$#{index}"] = convert_to_integer(value)
+      index += 1
     end
+
+    index
   end
 end

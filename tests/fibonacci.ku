@@ -1,23 +1,24 @@
-; Create reference address
+# DATA
+LIST $10 [0, 1, 1] ; Sets the initial values for the sequence, starting at $10
+
+# LOGIC
 SETUP:
-  MOVE 1 $11
-  MOVE 1 $12
-  LOAD H 12   ; H will be the address pointer
+  LOAD H 12   ; H will be the address pointer, starting at $12
   LOAD A 0    ; A and B will be the primary operands
   LOAD B 1
 
-NEXT:
-  SAVE B C    ; C holds B's previous value
-  ADD  A B
-  SAVE B @H
-  INC  H
-  SWAP A C
-  PIC  168
-  COMP L 10   ; L holds the Limit Counter
-  POS  3
-    INC $L
-    JUMP :NEXT
+MAIN:
+  SAVE B C      ; C holds B's previous value
+  ADD  A B      ; A + B -> B
+  SAVE B @H     ; Save value in B Register to address at H Register
+  INC  H        ; Increment address in H Register
+  SWAP A C      ; Put the sum of the previous addition into A
+  COMP L 10     ; Compares the Iteration Count to 10
+  POS  3        ; Breaks loop after 10 iterations
+    INC $L      ; Increase Iteration Count before continuing loop
+    JUMP :MAIN  ; Continue Loop
   JUMP :END
 
 END:
+  PIC 168
   HALT
