@@ -1,10 +1,9 @@
-;# DATA
 # DATA
-TEXT "abcdefgh" $0
-NAME $15 HAL
-TEXT "HELLO" $16
-list $24 ["a", "b", "c", "d", ITEM = "world", OBJECT = "YOU"]
+TEXT  $10 "abcdefgh" 
+NAME  $20 HAL
+TEXT  $30 "HELLO" 
+list  $40 ["a", "b", "c", "d", ITEM = "world", OBJECT = "YOU"]
 
 # LOGIC
-LOAD A 15
-PIC 0xA8
+PIC   0xA8
+HALT

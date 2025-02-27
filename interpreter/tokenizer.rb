@@ -9,8 +9,8 @@ class Tokenizer
     subroutine: %w[call rtrn],
     stack: %w[push pop dump rstr],
     memory: %w[move copy load save swap],
-    io: %w[text out in nin nout nwln prnt tlly post],
-    other: %w[name var halt pic list]
+    io: %w[in nin out nout nwln prnt tlly post],
+    other: %w[text name var halt pic list]
   }
 
   class Token

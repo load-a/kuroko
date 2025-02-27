@@ -2,7 +2,7 @@
 LIST $10 [0, 1, 1] ; Sets the initial values for the sequence, starting at $10
 
 # LOGIC
-SETUP:
+_SETUP:
   LOAD H 12   ; H will be the address pointer, starting at $12
   LOAD A 0    ; A and B will be the primary operands
   LOAD B 1

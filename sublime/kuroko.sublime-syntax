@@ -22,7 +22,7 @@ contexts:
     # strings in YAML. When using single quoted strings, only single quotes
     # need to be escaped: this is done by using two single quotes next to each
     # other.
-    - match: '(?i)# ?(DATA|LOGIC)'
+    - match: '(?i)# ?(data|logic|routines|subroutines)'
       scope: keyword.header.kuroko
 
     - match: '\b(?i)(add|sub|mul|mult|div|rem|mod|inc|dec|rand)\b'
@@ -43,10 +43,10 @@ contexts:
     - match: '\b(?i)(move|copy|load|save|swap)\b'
       scope: keyword.memory.kuroko
 
-    - match: '\b(?i)(text|out|in|nin|nout|nwln|prnt|tlly|post)\b'
+    - match: '\b(?i)(out|in|nin|nout|nwln|prnt|tlly|post)\b'
       scope: keyword.io.kuroko
 
-    - match: '\b(?i)(name|var|halt|pic|list)\b'
+    - match: '\b(?i)(text|name|var|halt|pic|list)\b'
       scope: keyword.other.kuroko
 
     # Numbers

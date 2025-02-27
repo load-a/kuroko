@@ -1,47 +1,48 @@
-MOVE 111 A
-SAVE A $10
-MOVE 222 B
-SAVE B $11
+MOVE 	111 A
+SAVE 	A $10
+MOVE 	222 B
+SAVE 	B $11
 
-PUSH A
-PUSH B
+PUSH 	A
+PUSH 	B
 
-POP A
-POP B
+POP 	A
+POP 	B
 
-move 0x53 j
-move 0x74 i
-move 0x61 l
-move 0x63 h
-move 0x6b c
-move 0x21 b
-move 0x00 a
+MOVE 	0x53 J
+MOVE 	0x74 I
+MOVE 	0x61 L
+MOVE 	0x63 H
+MOVE 	0x6b C
+MOVE 	0x21 B
+MOVE 	0x00 A
 DUMP
 
-MOVE 248 A
-MOVE 255 i
-MOVE 12 j
+MOVE 	248 A
+MOVE 	255 I
+MOVE 	12 J
 
-CALL :WRITE_TO_MEMORY
+CALL 	:WRITE_TO_MEMORY
 RSTR
 
-CALL :CLEAR_REGISTERS
-PIC 0xA8
+CALL 	:CLEAR_REGISTERS
+PIC		0xA8
 HALT
 
+# ROUTINES
 WRITE_TO_MEMORY:
-	MOVE @I @J
-	DEC I
-	INC J
-	JGT :WRITE_TO_MEMORY I
-	RTRN
-CLEAR_REGISTERS:
-	move 0x43 a
-	move 0x6c b
-	move 0x65 c
-	move 0x61 h
-	move 0x72 l
-	move 0x65 i
-	move 0x64 j
+	MOVE	@I @J
+	DEC		I
+	INC		J
+	JGT		:WRITE_TO_MEMORY I
 	RTRN
 
+CLEAR_REGISTERS:
+	move	0x43 a
+	move	0x6c b
+	move	0x65 c
+	move	0x61 h
+	move	0x72 l
+	move	0x65 i
+	move	0x64 j
+	RTRN

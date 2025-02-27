@@ -6,7 +6,7 @@ class Lexer
 
   COARSE_PATTERNS = {
     comment: /;.*/,
-    header: /# ?(DATA|LOGIC)/i,
+    header: /# ?(DATA|LOGIC|ROUTINES|SUBROUTINES)/i,
     bracket: /\[|\]/,
     element: /#{LIST_ASSIGNMENT_PATTERN}(#{NUMBER_PATTERN}|#{STRING_PATTERN})/,
     number: NUMBER_PATTERN,

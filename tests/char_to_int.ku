@@ -1,40 +1,43 @@
-#DATA
-NAME $10 NUMBER ; Creates a variable for input
+# Data
+NAME $10 number ; Creates a variable for input
 
-#LOGIC
-ASK_FOR_INPUT:
-  OUT "Please enter a number: "   ; Prompts the user for a number
-  IN $NUMBER                      ; Receives input and stores it in $number
-  MOVE 10 H                       ; Loads the address of $number into H Register to prepare it for subroutine
-  CALL :CONVERT                   ; Converts the string into numbers
-  POST                            ; Displays the "[KURO] >> " prompt with no newline
-    PRNT "You wrote "             ; Prints text
-    MOVE 10 H                     ; Prepares H for subroutine again
-    CALL :OUTPUT                  ; Generates output text
-    NWLN                          ; Prints newline
-  JUMP :END
+# Logic
+_ASK_FOR_INPUT:
+  OUT   "Please enter a number: "     ; Prompts the user for a number
+  IN    $number                       ; Receives input and stores it in $number
+  MOVE  10 H                          ; Loads the address of $number into H Register to prepare it for subroutine
+  CALL  :CONVERT                      ; Converts the string into numbers
+  POST                                ; Displays the "[KURO] >> " prompt with no newline
+    PRNT  "You wrote "                ;   Prints text
+    MOVE  10 H                        ;   Prepares H for subroutine again
+    CALL  :OUTPUT                     ;   Generates output text
+    NWLN                              ; Prints newline
+  JUMP  :END
 
+# Subroutines
 CONVERT:
-  COMP @H 0         ; Compares the character at H to Null
-  ZERO 10           ; Return from subroutine if the character at H is Null
-    LOAD A @H       ; Address at H is loaded into A Register
-    LOAD B 48       ; 48 (the difference between an ASCII Digit and its literal value) is loaded into B Register
-    SUB  A B        ; A - B -> B for the numeric value of the character
-    SAVE B @H       ; This value is saved at H
-    LOAD L H        ; Load address in H into L
-    INC  H          ; Increment H address
-    LOAD A 9        ; Load numeral check into A Register
-    JLE :CONVERT @L ; Resume Loop if value is numeric (it is less than 9)
-    DEC H           ; Fall through to return otherwise. Reverts H to previous valid address
-  SAVE H L          ; Saves the last converted address into L for later
+  COMP  @H 0            ; Compares the character at H to Null
+  ZERO  10              ; IF the character at H is Null: prepare to return from subroutine
+    LOAD  A @H          ; ELSE: Address at H is loaded into A Register
+    LOAD  B 48          ;   48 (the difference between an ASCII Digit and its literal value) is loaded into B Register
+    SUB   A B           ;   A - B -> B for the numeric value of the character
+    SAVE  B @H          ;   This value is saved at H
+    LOAD  L H           ;   Load address in H into L
+    INC   H             ;   Increment H address
+    LOAD  A 9           ;   Load numeral check into A Register
+    JLE   :CONVERT @L   ;   IF value is numeric (it is less than 9): Loop
+    DEC   H             ;   ELSE: Revert H to previous valid address and fall through to return
+  SAVE  H L             ; Saves the last converted address into L for later
   RTRN
+
 OUTPUT:
-  COMP H L          ; Compares address in H to address in L (the last valid numeral address)
-  ZERO 4            ; Return from subroutine if equal
-    TLLY @H         ; Append numeral at H to output
-    INC H           ; Increment H
-    JUMP :OUTPUT    ; Resume Loop
+  COMP  H L         ; Compares address in H to address in L (the last valid numeral address)
+  ZERO  4           ; IF H == L: return from subroutine
+    TLLY  @H        ; ELSE: Append numeral at H to output
+    INC   H         ;   Increment H
+    JUMP  :OUTPUT   ;   Resume Loop
   RTRN
+
 END:
-  ; PIC 0xA8        ; Optional diagnostic output
-  HALT              ; Safely ends execution
+  ; PIC   0xA8 ; Optional diagnostic output
+  HALT         ; Safely ends execution

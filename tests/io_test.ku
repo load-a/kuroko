@@ -1,12 +1,12 @@
 #DATA
 ; Declares variables and writes text into RAM
-LIST $10 [PROMPT = "Please enter your name: ", GREETING = "Hello, ", USER = 0]
+LIST $10 [prompt = "Please enter your name: ", greeting = "Hello, ", user = 0]
 
 #LOGIC
-OUT $PROMPT       ; Prints the Kuro Prompt ("[KURO] >> ") followed by the text, then start a newline
-IN  $USER         ; Prints the User Prompt ("[USER] << ") and receives text
-
-POST              ; Just prints the prompt with no additional text or newline
-  PRNT $GREETING  ; Appends $GREETING to the current line
-  PRNT $USER      ; Appends $USER name to the current line
-  OUT "!"
+_MAIN:
+  OUT   $prompt       
+  IN    $user         
+  POST                
+    PRNT  $greeting   
+    PRNT  $user       
+    OUT   "!"

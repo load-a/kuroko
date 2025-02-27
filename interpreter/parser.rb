@@ -69,7 +69,7 @@ class Parser
 
       case verb
       when 'text'
-        parse_io(group)
+        parse_other(group)
       when 'list'
         parse_list(group)
       when 'name'
@@ -102,7 +102,7 @@ class Parser
   end
 
   def parse_logic_section
-    if partitions[0][0] == :header
+    if partitions[0][0].type == :header
       expect_type(partitions[0][0], :header)
       expect_subtype(partitions[0][0], :logic)
       partitions.delete_at(0)
@@ -112,7 +112,7 @@ class Parser
 
   def parse_logical_groups
     partitions.each do |group|
-      next instructions << Instruction.new('header', group[0], BLANK_TOKEN) if group[0].type == :header 
+      next if group[0].type == :header 
       next instructions << Instruction.new('func', group[0], BLANK_TOKEN) if group[0].type == :subroutine 
       next instructions << Instruction.new(:end, BLANK_TOKEN, BLANK_TOKEN) if group[0].type == :end_of_file 
 
@@ -302,14 +302,6 @@ class Parser
     command = group[0].value
 
     case command
-    when 'text'
-      expect_type(group[2], :string)
-      text = group[2]
-
-      expect_type(group[1], :address, :register, :variable)
-      location = group[1]
-
-      instructions << Instruction.new(command, location, text)
     when 'in', 'out', 'prnt', 'tlly'
       check_component_range(group, (2..3))
       expect_type(group[1], :address, :register, :variable, :string)
@@ -320,7 +312,7 @@ class Parser
         limit = Tokenizer::Token.new(:number, :integer, char_limit)
       else
         expect_type(group[2], :number, :register, :variable, :address)
-        group[2].value = group[2].value.clamp(-2, 256)
+        group[2].value = group[2].value.clamp(-2, 256) if group[2].is_a? Integer
         limit = group[2]
       end
 
@@ -353,6 +345,14 @@ class Parser
 
   def parse_other(group)
     case group[0].value
+    when 'text'
+      expect_type(group[2], :string)
+      text = group[2]
+
+      expect_type(group[1], :address, :register, :variable)
+      location = group[1]
+
+      instructions << Instruction.new(group[0].value, location, text)
     when 'var', 'name'
       raise "Cannot use NAME or VAR in Logic Section" if mode == :logic
 

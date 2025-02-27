@@ -1,53 +1,61 @@
-# DATA
-NAME $20 RESULT
-NAME $21 RESULT2
+; An adaptation of the Foo-Bar program written in the Kuroko Language
 
-# LOGIC
-BRANCHING:
-	MOVE 1 A
-	MOVE 2 B
-	MOVE 10 C
-	TEXT "GT" $10
-	TEXT "EQ" $12
-	TEXT "LT" $14
-	COMP A B
-	POS  6	; Jump 6 lines down if (A - B) is positive
-	ZERO 4	; Jump 4 lines down if (A - B) is zero
-	NEG  2	; Jump 2 lines down if (A - B) is negative
-	HALT
-	ADD 2 C
-	ADD 2 C
-	OUT @2 2
-LOOPING:
-	MOVE 10 A
-	INC I
-	JLT :LOOPING I
-JUMPING:
-	MOVE 9 C			; Change this to test jumps. (A = 10 from line 20.)
-	JGT :great C		; C >  A
-	JGE :great_equal C	; C >= A
-	JEQ :equal C		; C == A
-	JLE :less_equal C	; C <= A
-	JLT :less C			; C <  A
-	JUMP :END			; Unconditional Jump - It's not actually possible to execute this line
-	GREAT:
-		MOVE 62 $RESULT
-		HALT
-	GREAT_EQUAL:
-		MOVE 62 $RESULT
-		MOVE 61 $RESULT2
-		HALT
-	EQUAL: 
-		MOVE 61 $RESULT
-		MOVE 61 $RESULT2
-		HALT
-	LESS: 
-		MOVE 60 $RESULT
-		HALT
-	LESS_EQUAL:
-		MOVE 60 $RESULT
-		MOVE 61 $RESULT2
-		HALT
-	END:
-		MOVE 88 $RESULT
-		HALT
+# Data
+LIST  $10 [
+  limit = 0
+  kuroko = "KUROKO"
+]
+
+# Logic
+MAIN_LOOP:
+  INC   I
+  COMP  I 200
+  ZERO  5
+    CALL  :CHECK_NUMBER
+    CALL  :SET_OUTPUT
+    CALL  :PRINT_OUTPUT
+    JUMP  :MAIN_LOOP
+  JUMP  :END
+
+# Routines
+CHECK_NUMBER:
+  MOVE  0 B
+  MOVE  5 A
+  MOD   I A
+  COMP  A 0
+  POS   2
+    ADD   5 B
+  MOVE  7 A
+  MOD   I A
+  COMP  A 0
+  POS   2
+    ADD   7 B
+  RTRN
+
+SET_OUTPUT:
+  COMP  B 12
+  NEG   3
+    MOVE  6 $limit
+    RTRN
+  COMP  B 7
+  NEG   3
+    MOVE  4 $limit
+    RTRN
+  COMP  B 5
+  NEG   3
+    MOVE  2 $limit
+    RTRN
+  MOVE  0 $limit
+  RTRN
+
+PRINT_OUTPUT:
+  COMP  $limit 0
+  ZERO  5
+    TLLY  I
+    PRNT  ". "
+    PRNT  $kuroko $limit
+    NWLN
+  RTRN
+
+END:
+  HALT
