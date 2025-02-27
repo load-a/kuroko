@@ -1,201 +1,236 @@
-# **Kuroko Language**
+# Kuroko - 8-bit Assembly-Like Language
 
-Kuroko is a simple, educational, assembly-like language designed for learning fundamental low-level programming concepts. It uses a readable syntax, with a focus on clarity and accessibility, making it an ideal stepping stone for those interested in assembly programming. Kuroko is machine-agnostic, simulating an 8-bit environment for educational purposes.
+## Overview
 
----
+Kuroko is a simple, structured, case-insensitive assembly-like language designed for an 8-bit interpreted environment. It emphasizes clarity, strict formatting, and readability while maintaining low-level control over memory and execution flow.
 
-## **General Rules**
-- The language is case-insensitive.
-- Numbers are treated as literals by default.
-- **"$"** denotes an address.
-- **"@"** indicates a pointer (e.g., `@0xAE` means "the address stored at location $0xAE").
-- Subroutines are declared with the `LABEL:` syntax and called using `:LABEL`.
-- Numbers are unsigned by default (range: 0–255). A leading `+` or `-` denotes a signed integer (range: -128 to 127).
-- Only whole integers are supported.
-- Supports Hex, Decimal, Octal and Binary representations.
-- Registers: **A**, **B**, **C**, **H**, **L**, **I**, **J**.
-- The syntax for operations follows a `VERB DIRECT-OBJECT INDIRECT-OBJECT` structure (e.g., "DO THIS with/using/into THIS").
-- Math and logical operations use the structure `OPERAND operation OPERATOR`. For example, `ADD 1 2` means `1 + 2` and `DIV 10 5` means `10 / 5`.
-- The **A Register** is the default second operand. If **A** is the first operand, a second operand must be present (when applicable).
-- Strings are terminated with a Null Character (0x00). The user must manually ensure null separation.
-- Optional operands are enclosed in brackets. Default values, if any, are specified.
+## Features
 
----
+- **Case-insensitive syntax**
+- **Whitespace and commas ignored** (except as delimiters)
+- **Labels for structure, subroutines, and variables**
+- **Strong formatting rules for clarity**
+- **Registers, RAM addressing, and stack operations**
+- **Arithmetic, logical, and bitwise operations**
+- **Branching, jumps, and subroutine handling**
+- **Input/output handling for interactive programs**
 
-## **Memory Layout**
-The language has a total of **256 addresses**. The first **10 addresses** are reserved for the **registers**. Users are free to write to addresses starting from **$10** onwards.
+## Code Structure
 
----
+A Kuroko program consists of labeled sections with structured indentation and spacing rules. Common sections include:
 
-## **Example Program**
+### Data Section
 
-Here is a simple "Hello, World!" example in Kuroko:
+Used to declare named memory locations and structured data:
 
 ```assembly
-NAME $10 MESSAGE           ; Create a label for address $10
-TEXT "Hello, World!" $MESSAGE   ; Store the message at the MESSAGE address
-
-OUT $MESSAGE              ; Output the message to the console
-
-HALT                      ; End execution
+# Data
+LIST  $10 [
+  prompt     = "Enter a number: ",
+  too_high   = "Too high!",
+  too_low    = "Too low!",
+  win_text   = "You got it!"
+]
+NAME  $11 user_input
 ```
 
----
+### Logic Section
 
-## **Commands**
+Contains the main execution flow and structured labels for better organization:
 
-### **Arithmetic**
-"Source" refers to a *Number, Variable, Register, or Address*.  
-"Destination" and "Step" refer to a *Variable, Register, or Address*.
+```assembly
+# Logic
+MAIN:
+  OUT   $prompt
+  CALL  :GET_INPUT
+  CALL  :CHECK_NUMBER
+  JUMP  :MAIN
+```
 
-- **ADD source, [destination: Accumulator]**  
-  Adds `source` to `destination` and stores the result in `destination`.
-- **SUB source, [destination: Accumulator]**  
-  Subtracts `destination` from `source` and stores the result in `destination`.
-- **MUL source, [destination: Accumulator]**  
-  Multiplies `source` by `destination` and stores the result in `destination`.  
-  Alias: `MULT`
-- **DIV source, [destination: Accumulator]**  
-  Divides `source` by `destination` and stores the result in `destination`.
-- **REM source, [destination: Accumulator]**  
-  Divides `source` by `destination` and stores the remainder in `destination`.  
-  Alias: `MOD`
-- **INC destination, [step: 1]**  
-  Adds `step` to `destination` (default is 1).
-- **DEC destination, [step: 1]**  
-  Subtracts `step` from `destination` (default is 1).
+### Subroutines
 
-### **Logic & Bitwise**
-"Source" refers to a *Number, Variable, Register, or Address*.  
-"Destination" and "Step" refer to a *Variable, Register, or Address*.
+Encapsulated code blocks for reuse and organization:
 
-- **AND source, [destination: Accumulator]**  
-  Performs a logical AND between `source` and `destination` and stores the result in `destination`.
-- **OR source, [destination: Accumulator]**  
-  Performs a logical OR between `source` and `destination` and stores the result in `destination`.
-- **NOT destination**  
-  Inverts the bits in `destination`.
-- **XOR source, [destination: Accumulator]**  
-  Performs a logical XOR between `source` and `destination` and stores the result in `destination`.
-- **LEFT destination, [step: 1]**  
-  Shifts the bits in `destination` left by `step` number of times.
-- **RGHT destination, [step: 1]**  
-  Shifts the bits in `destination` right by `step` number of times.
+```assembly
+# Subroutines
+GET_INPUT:
+  NIN   $user_input
+  RTRN
 
-### **Control Flow**
+CHECK_NUMBER:
+  COMP  $user_input 42
+  ZERO  :CORRECT
+  POS   :TOO_HIGH
+  OUT   $too_low
+  RTRN
 
-- **Branching (comparison with Zero):**
-  "Offset" must be an integer (signed or unsigned). Offsets cannot be zero to prevent infinite loops.
+TOO_HIGH:
+  OUT   $too_high
+  RTRN
 
-  *Note*: Whitespace and certain lexical items (e.g., `NAME` instructions, subroutine `LABEL:`, comments) are removed before execution. They should be considered when using branch instructions.
-  
-  - **COMP source, destination**  
-    Subtracts `destination` from `source`, setting the Flag Register.
-  - **ZERO offset**  
-    Branches `offset` instructions if the Zero flag is set.
-  - **POS offset**  
-    Branches `offset` instructions if no flags are set.
-  - **NEG offset**  
-    Branches `offset` instructions if the Negative flag is set.
+CORRECT:
+  OUT   $win_text
+  HALT
+```
 
-- **Jumps (comparison with Accumulator):**
-  "Destination" refers to a *Subroutine*. "Source" is the *Number, Register, Address, or Variable* compared to the Accumulator to initiate the jump.
-  
-  - **JUMP destination**  
-    Jumps to `destination`.
-  - **JEQ destination, source**  
-    Jumps to `destination` if `source == A`.
-  - **JLT destination, source**  
-    Jumps to `destination` if `source < A`.
-  - **JGT destination, source**  
-    Jumps to `destination` if `source > A`.
-  - **JGE destination, source**  
-    Jumps to `destination` if `source >= A`.
-  - **JLE destination, source**  
-    Jumps to `destination` if `source <= A`.
+## Style Guide
 
-- **Routines:**
-  - **CALL subroutine**  
-    Jumps to `subroutine`, saving the current instruction index on the stack.
-  - **RTRN**  
-    Pops the stack and returns to the instruction after the call.
+### Formatting Rules
 
-### **Stack Manipulation**
-- **PUSH source**  
-  Pushes `source` onto the stack. Literals can also be pushed.
-- **POP destination**  
-  Pops the top value from the stack and stores it in `destination`.
-- **DUMP**  
-  Pushes each register's value onto the stack in order.
-- **RSTR**  
-  Restores each register from the stack in reverse order.
+- **Labels**: Use `UPPERCASE` for locations and subroutines, `lowercase` for variables.
+- **Indentation**: Use **two spaces**, no tabs.
+- **Operand alignment**: Ensure operands start at column 6.
+- **Comments**: Use `;` for inline explanations.
 
-  *Note*: The stack starts at the last address in RAM (0xFF) and grows downward. It has a capacity of 16 addresses, but there are no protections from stack overflows.
+Example:
 
-### **Memory**
-- **MOVE source, destination**  
-  Copies the value from `source` into `destination`.
-- **LOAD register, source**  
-  Copies a value from memory into `register`, supports immediate values.
-- **SAVE register, destination**  
-  Copies the value from `register` into `destination`.
-- **SWAP source, destination**  
-  Swaps the values of `source` and `destination` (at least one must be a register).
+```assembly
+; Correct alignment
+MOVE  B C
+ADD   H L
+OR    I J
+```
 
-### **Input/Output**
-- **TEXT string, destination**  
-  Stores each byte of `string` into memory starting at `destination`.
-- **OUT destination, limit**  
-  Displays characters from `destination` up to `limit` or until a null character.
-- **IN destination, limit**  
-  Reads standard input into memory starting at `destination`, stopping at `limit`.
+## Instruction Set
 
-### **Other**
-- **NAME address label**  
-  Assigns a label to the given address, effectively creating a variable.
-- **PIC image**  
-  Displays the CPU status at the time the instruction is encountered. The "Image" operand is one byte that defines what gets displayed.
+### Arithmetic Operations
 
-  The four least significant bits control the displayed information:
-  ```
-  registers:   0b0001
-  flags:       0b0010
-  stack:       0b0100
-  ram:         0b1000
-  ```
+```
+ADD  source {destination}  ; Addition
+SUB  source {destination}  ; Subtraction
+MUL  source {destination}  ; Multiplication
+DIV  source {destination}  ; Division
+MOD  source {destination}  ; Modulus (Remainder)
+```
 
-  The upper nibble defines the format:
-  ```
-  hex:      0b11
-  decimal:  0b10
-  octal:    0b01
-  binary:   0b00
-  ```
+### Logic & Bitwise Operations
 
-  Example: `PIC 0b11001000` shows RAM in hexadecimal addresses and binary values.
+```
+AND  source {destination}  ; Bitwise AND
+OR   source {destination}  ; Bitwise OR
+XOR  source {destination}  ; Bitwise XOR
+NOT  source                ; Bitwise NOT
+LEFT destination {source}  ; Left shift
+RGHT destination {source}  ; Right shift
+```
 
----
+### Control Flow
 
-## **Registers**
+```
+COMP  source source        ; Compare two values
+ZERO  label                ; Jump if result is zero
+POS   label                ; Jump if positive
+NEG   label                ; Jump if negative
+JUMP  label                ; Unconditional jump
+CALL  subroutine           ; Call a subroutine
+RTRN                        ; Return from subroutine
+```
 
-### **User-Accessible Registers:**
-These are general-purpose, but some are named for convenience.
-- **A (Accumulator)**  
-  Used for arithmetic results and is the default destination for many operations.
-- **B, C (Bank Registers)**  
-  General-purpose registers.
-- **H, L (Data Registers)**  
-  Named for handling address data.
-- **I, J (Index Registers)**  
-  Used for looping or managing specific memory addresses.
+### Stack Operations
 
-### **Internal Registers:**
-- **Flag Register:** Stores condition flags (Zero, Carry, Negative, etc.).
-- **PC (Program Counter):** Tracks the current instruction.
-- **SP (Stack Pointer):** Points to the current location in the stack.
+```
+PUSH  source               ; Push value to stack
+POP   destination          ; Pop value from stack
+DUMP                        ; Push all registers to stack
+RSTR                        ; Restore registers from stack
+```
 
----
+### Memory Operations
 
-### Conclusion
+```
+MOVE  source destination   ; Copy value
+LOAD  register source      ; Load value into register
+SAVE  register destination ; Store register value
+SWAP  destination destination ; Swap two values
+```
 
-Kuroko is a unique approach to assembly-style programming, designed to be accessible, educational, and simple while maintaining the power and flexibility of assembly logic. This makes it perfect for anyone looking to dive deeper into low-level programming concepts.
+### Input/Output
+
+```
+OUT   source               ; Output text or number
+NIN   destination          ; Get user input (numeric)
+TLLY  destination          ; Output number in text format
+POST                        ; Begin formatted output block
+PRNT  source               ; Print within a formatted block
+NWLN                        ; Print newline
+```
+
+## Example Program
+
+A simple guessing game following Kuroko's conventions:
+
+```assembly
+# Data
+LIST  $10 [
+  prompt = "Guess a number between 1 and 100. ",
+  too_high = "Too high.",
+  too_low = "Too low.",
+  win_text = "You win!",
+  lose_text = "You lose. The number was "
+]
+
+LIST  $104 [
+  number = 0,
+  chances = 0,
+  guess = 0
+]
+
+# Logic
+_INITIALIZE:
+  MOVE  5 $chances
+  RAND  $number
+  LOAD  A 100
+  MOD   $number A
+  INC   A
+  SAVE  A $number
+
+_START_GAME:
+  OUT   $prompt
+
+GAME_LOOP: 
+  CALL  :GET_GUESS
+  CALL  :CHECK_GUESS
+  JUMP  :GAME_LOOP
+
+# Subroutines
+GET_GUESS:
+  NIN   $guess
+  RTRN
+
+CHECK_GUESS:
+  COMP  $guess $number
+  ZERO  6
+    CALL  :GIVE_HINT
+    DEC   $chances
+    LOAD  A 0
+    JLE   :LOST $chances
+    RTRN
+  CALL  :WON
+  RTRN
+
+GIVE_HINT: 
+  POS   3 
+    OUT   $too_low 
+    RTRN
+  OUT   $too_high
+  RTRN
+
+LOST:
+  POST
+    PRNT  $lose_text
+    TLLY  $number
+    NWLN
+  JUMP  :END
+
+WON: 
+  OUT   $win_text
+  JUMP  :END
+
+END:
+  HALT
+```
+
+## Summary
+
+Kuroko is designed for clarity, structure, and control, making it a powerful educational tool for understanding low-level programming concepts. By enforcing strict formatting and readable conventions, it provides an accessible yet disciplined environment for writing structured assembly-like code.
+
